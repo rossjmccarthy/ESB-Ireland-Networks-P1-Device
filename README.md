@@ -16,6 +16,10 @@ far about the Irish telegram format.
 This is an independent community project. It is not affiliated with, endorsed
 by or supported by ESB Networks.
 
+> **Read the [disclaimer](DISCLAIMER.md) before you connect anything.** Use of
+> the P1 port is subject to ESB Networks' conditions, a self-built device is
+> not a certified product, and you fit one entirely at your own risk.
+
 ## Before you start
 
 ### Check your meter can do this
@@ -35,7 +39,8 @@ Do this before buying or building anything.
 
 These come from ESB Networks'
 [near real-time data page](https://www.esbnetworks.ie/about-us/company/data-and-digital/accessing-near-real-time-data).
-Read that page in full. In summary:
+Read that page in full: it is the authority, and it can change. The fuller list
+is in the [disclaimer](DISCLAIMER.md). In summary:
 
 - **Do not fit a device where there are multiple meters**, such as the shared
   meter cabinet of an apartment block. ESB Networks does not permit it and will
@@ -68,7 +73,8 @@ MPRN or your `secrets.yaml` publicly.
 ## What you need
 
 - An ESB Networks smart meter with the P1 port enabled.
-- An ESP32 board, or a ready-made P1 reader that runs ESPHome.
+- An ESP32 board, or a ready-made P1 reader that runs ESPHome. The
+  configuration defaults to an ESP32-C6-WROOM-1 on an ESP32-C6-DevKitC-1.
 - An RJ12 (6P6C) cable.
 - A resistor of 1 kΩ to 4.7 kΩ, if you are wiring a bare board.
 - Home Assistant with the ESPHome integration.
@@ -78,11 +84,11 @@ Wiring is in [docs/hardware.md](docs/hardware.md).
 ## Flashing
 
 1. Install ESPHome: either the ESPHome add-on in Home Assistant or the
-   [command-line tool](https://esphome.io/guides/installing_esphome/).
+   [command-line tool](https://esphome.io/install/).
 2. Copy `esphome/secrets.yaml.example` to `esphome/secrets.yaml` and fill in
    your own values. Generate your own API key; do not reuse one from a guide.
 3. Edit the `substitutions` at the top of `esphome/esb-p1-reader.yaml` so
-   `board` and `rx_pin` match your hardware.
+   `board`, `variant` and `rx_pin` match your hardware.
 4. With the RJ12 cable unplugged, connect the board by USB and run:
 
    ```bash
@@ -126,3 +132,8 @@ telegram safely" in [docs/telegram.md](docs/telegram.md).
   The configuration here was written independently from those documented facts.
 - [ESPHome](https://esphome.io/) and its
   [DSMR component](https://esphome.io/components/sensor/dsmr/) do the real work.
+
+## Licence
+
+[MIT](LICENSE). Provided as is, with no warranty. See the
+[disclaimer](DISCLAIMER.md).

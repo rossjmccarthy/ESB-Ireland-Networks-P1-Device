@@ -66,12 +66,34 @@ unless you know your board isolates the two supplies. Many development boards
 do not, and you would be back-feeding one supply into the other. The simplest
 rule: when flashing over USB, unplug the RJ12 cable.
 
-## Choosing a board
+## Reference board: ESP32-C6-WROOM-1
 
-Any ESP32 board that ESPHome supports should work. Set `board` and `rx_pin` in
-[`esphome/esb-p1-reader.yaml`](../esphome/esb-p1-reader.yaml) to match.
+The configuration defaults to an ESP32-C6-WROOM-1 module on an
+ESP32-C6-DevKitC-1 board, with the P1 data line on **GPIO6**.
 
-- Avoid strapping pins for RX (on the classic ESP32: GPIO0, 2, 5, 12 and 15).
+| Pins | Why to avoid them for RX |
+| --- | --- |
+| GPIO4, 5, 8, 9, 15 | Strapping pins, read at boot. GPIO8 also drives the DevKitC's RGB LED and GPIO9 is the BOOT button |
+| GPIO12, 13 | Native USB (the DevKitC's "USB" port) |
+| GPIO16, 17 | UART0, wired to the DevKitC's USB-to-serial chip ("UART" port) |
+
+GPIO6 is none of these. If your module is on a different carrier board, check
+that GPIO6 is broken out and free, or pick another pin outside the table and
+change `rx_pin`.
+
+The DevKitC-1 has two USB-C ports. Either can flash the board. ESPHome sends
+its log to the native "USB" port by default on the C6.
+
+The ESP32-C6 is a 2.4 GHz device (Wi-Fi 6). It does not use 5 GHz.
+
+## Using a different board
+
+Any ESP32 board that ESPHome supports should work. Set `board`, `variant` and
+`rx_pin` in [`esphome/esb-p1-reader.yaml`](../esphome/esb-p1-reader.yaml) to
+match, for example `esp32dev` and `esp32` for a classic ESP32.
+
+- Avoid your chip's strapping pins for RX (on the classic ESP32: GPIO0, 2, 5,
+  12 and 15).
 - A small board is easier to fit. Meter boxes are tight and often outdoors.
 - A ready-made P1 reader that already runs ESPHome needs no wiring at all.
   Use its manufacturer's pin assignment for `rx_pin`.
