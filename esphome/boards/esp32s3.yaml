@@ -1,0 +1,15 @@
+# ESP32-S3 (for example ESP32-S3-DevKitC-1)
+#
+# Board settings for the ready-made firmware. Wire the P1 data line (RJ12
+# pin 5) to GPIO18. See docs/hardware.md.
+#
+# This is also the file the ESPHome dashboard imports when you adopt a device
+# flashed with this build.
+
+substitutions:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  rx_pin: GPIO18
+
+packages:
+  core: !include ../esb-p1-reader.yaml

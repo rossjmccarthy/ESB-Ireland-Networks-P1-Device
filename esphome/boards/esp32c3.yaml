@@ -1,0 +1,15 @@
+# ESP32-C3 (for example ESP32-C3-DevKitM-1 or a C3 Super Mini)
+#
+# Board settings for the ready-made firmware. Wire the P1 data line (RJ12
+# pin 5) to GPIO6. See docs/hardware.md.
+#
+# This is also the file the ESPHome dashboard imports when you adopt a device
+# flashed with this build.
+
+substitutions:
+  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  rx_pin: GPIO6
+
+packages:
+  core: !include ../esb-p1-reader.yaml

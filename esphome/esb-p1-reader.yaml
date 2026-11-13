@@ -3,11 +3,13 @@
 #
 # This is the core configuration. It contains no secrets, so it can be:
 #   - built into the ready-made firmware for the web flasher
-#     (esb-p1-reader.factory.yaml), and
+#     (esb-p1-reader.factory.yaml, once for each file in boards/), and
 #   - used as a package by your own configuration, which adds your Wi-Fi
 #     details and encryption key (esb-p1-reader.secure.example.yaml).
 #
 # Defaults are for an ESP32-C6-WROOM-1 module on an ESP32-C6-DevKitC-1 board.
+# Devices adopted from the first ESP32-C6 firmware import this file directly,
+# so keep those defaults as they are. Other boards override them in boards/.
 #
 # Status: validated with `esphome config`. Not yet confirmed on a meter by this
 # project. The register list comes from a third-party report on a single-phase

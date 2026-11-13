@@ -111,38 +111,56 @@ sending. It never touches the board when the board is on USB power. Both
 ground pins stay connected in both cases: the data signal needs a shared
 ground.
 
-## Reference board: ESP32-C6-WROOM-1
+## Supported boards
 
-The configuration defaults to an ESP32-C6-WROOM-1 module on an
-ESP32-C6-DevKitC-1 board, with the P1 data line on **GPIO6**.
+The web flasher offers one ready-made build per chip family. Each expects the
+P1 data line on a fixed pin:
 
-| Pins | Why to avoid them for RX |
+| Chip | Built for | P1 data pin | Status |
+| --- | --- | --- | --- |
+| ESP32-C6 | ESP32-C6-DevKitC-1 (ESP32-C6-WROOM-1) | **GPIO6** | Flashed and added to Home Assistant by this project. Not yet confirmed on a meter |
+| ESP32 (classic) | ESP32-DevKitC, NodeMCU-32S (ESP32-WROOM-32) | **GPIO16** | Compiles. Not yet tried on a board |
+| ESP32-S3 | ESP32-S3-DevKitC-1 | **GPIO18** | Compiles. Not yet tried on a board |
+| ESP32-C3 | ESP32-C3-DevKitM-1, C3 Super Mini | **GPIO6** | Compiles. Not yet tried on a board |
+
+Each build is defined by a small file in
+[`esphome/boards/`](../esphome/boards/). If you try one of the untested builds,
+please open an issue to say how it went.
+
+The data pins were chosen to stay clear of the pins each chip needs for other
+things. If you move the data line, avoid these:
+
+| Chip | Avoid for the data line |
 | --- | --- |
-| GPIO4, 5, 8, 9, 15 | Strapping pins, read at boot. GPIO8 also drives the DevKitC's RGB LED and GPIO9 is the BOOT button |
-| GPIO12, 13 | Native USB (the DevKitC's "USB" port) |
-| GPIO16, 17 | UART0, wired to the DevKitC's USB-to-serial chip ("UART" port) |
+| ESP32-C6 | GPIO4, 5, 8, 9, 15 (strapping pins, read at boot), GPIO12, 13 (USB), GPIO16, 17 (serial port) |
+| ESP32 (classic) | GPIO0, 2, 5, 12, 15 (strapping), GPIO1, 3 (serial port), GPIO6 to 11 (flash memory) |
+| ESP32-S3 | GPIO0, 3, 45, 46 (strapping), GPIO19, 20 (USB), GPIO43, 44 (serial port), GPIO26 to 32 (flash memory) |
+| ESP32-C3 | GPIO2, 8, 9 (strapping), GPIO18, 19 (USB), GPIO20, 21 (serial port), GPIO12 to 17 (flash memory) |
 
-GPIO6 is none of these. If your module is on a different carrier board, check
-that GPIO6 is broken out and free, or pick another pin outside the table and
-change `rx_pin`.
+Notes:
 
-The DevKitC-1 has two USB-C ports. Either can flash the board. ESPHome sends
-its log to the native "USB" port by default on the C6, and the web flasher can
-only ask for your Wi-Fi details over that port, so use the one labelled "USB".
+- **ESP32-WROVER modules** use GPIO16 and 17 for their extra memory, so the
+  classic ESP32 build will not work on them. Build your own with another pin.
+- **Boards with two USB ports** (the C6 and S3 DevKitC-1): either port can
+  flash the board, but the web flasher can only ask for your Wi-Fi details
+  over the one labelled "USB".
+- **ESP32-C3 boards with a USB-to-serial chip** (such as the DevKitM-1): the
+  web flasher cannot ask for Wi-Fi details. Use the setup hotspot instead.
+- All of these chips use 2.4 GHz Wi-Fi only.
 
-The ESP32-C6 is a 2.4 GHz device (Wi-Fi 6). It does not use 5 GHz.
+## Using a different board or pin
 
-## Using a different board
+Any ESP32 board that ESPHome supports should work, but you need to build the
+firmware yourself (Option 2 in the [README](../README.md)). Set `board`,
+`variant` and `rx_pin` in your own configuration.
 
-Any ESP32 board that ESPHome supports should work. Set `board`, `variant` and
-`rx_pin` in [`esphome/esb-p1-reader.yaml`](../esphome/esb-p1-reader.yaml) to
-match, for example `esp32dev` and `esp32` for a classic ESP32.
-
-- Avoid your chip's strapping pins for RX (on the classic ESP32: GPIO0, 2, 5,
-  12 and 15).
+- Avoid your chip's strapping pins for the data line.
 - A small board is easier to fit. Meter boxes are tight and often outdoors.
 - A ready-made P1 reader that already runs ESPHome needs no wiring at all.
   Use its manufacturer's pin assignment for `rx_pin`.
+
+To add a board to the web flasher, add a file to `esphome/boards/` and an entry
+to the board list in `web/index.html`.
 
 ## Fitting it
 

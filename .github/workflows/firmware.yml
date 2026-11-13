@@ -1,7 +1,7 @@
 name: Firmware and web flasher
 
-# Builds the ready-made firmware and publishes the web flasher page to GitHub
-# Pages. Pull requests only build.
+# Builds the ready-made firmware for every board in esphome/boards/ and
+# publishes the web flasher page to GitHub Pages. Pull requests only build.
 
 on:
   push:
@@ -25,18 +25,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build firmware
+  prepare:
+    name: List boards
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      boards: ${{ steps.boards.outputs.boards }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
+      - name: List board files
+        id: boards
+        run: |
+          set -euo pipefail
+          boards=$(ls esphome/boards/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' | jq -R . | jq -sc .)
+          echo "boards=${boards}" >> "$GITHUB_OUTPUT"
+          echo "Boards: ${boards}"
+
       - name: Set firmware version
         id: version
         run: echo "version=$(date -u +%Y.%m.%d).${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.board }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        board: ${{ fromJson(needs.prepare.outputs.boards) }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Build firmware
         id: esphome
@@ -44,28 +69,75 @@ jobs:
         with:
           yaml-file: esphome/esb-p1-reader.factory.yaml
           version: 2026.10.2
-          complete-manifest: true
           substitutions: |
-            project_version=${{ steps.version.outputs.version }}
-
-      - name: Assemble site
-        env:
-          NAME: ${{ steps.esphome.outputs.name }}
-        run: |
-          set -euo pipefail
-          mkdir -p site/firmware
-          cp -r web/. site/
-          cp "${NAME}/${NAME}.factory.bin" "${NAME}/${NAME}.ota.bin" site/firmware/
-          jq '.name = "ESB P1 Reader" | .new_install_prompt_erase = true' \
-            "${NAME}/manifest.json" > site/firmware/manifest.json
-          touch site/.nojekyll
-          cat site/firmware/manifest.json
-          ls -l site/firmware
+            board_id=${{ matrix.board }}
+            project_version=${{ needs.prepare.outputs.version }}
 
       - name: Upload firmware
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
-          name: firmware
+          name: firmware-${{ matrix.board }}
+          path: |
+            ${{ steps.esphome.outputs.name }}/manifest.json
+            ${{ steps.esphome.outputs.name }}/*.bin
+          if-no-files-found: error
+          retention-days: 30
+
+  site:
+    name: Assemble web flasher
+    needs:
+      - prepare
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Download firmware
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          pattern: firmware-*
+          path: builds
+
+      - name: Assemble site
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p site/firmware
+          cp -r web/. site/
+          touch site/.nojekyll
+
+          wrap='{
+            name: "ESB P1 Reader",
+            version: $version,
+            home_assistant_domain: "esphome",
+            new_install_prompt_erase: true,
+            builds: .
+          }'
+
+          # One manifest per board, so the page installs exactly the build
+          # the visitor picked.
+          for dir in builds/firmware-*; do
+            board="${dir#builds/firmware-}"
+            cp "${dir}"/*.bin site/firmware/
+            jq --arg version "${VERSION}" -s "${wrap}" "${dir}/manifest.json" \
+              > "site/firmware/${board}.manifest.json"
+          done
+
+          # A combined manifest that lets the installer pick by detected chip.
+          jq --arg version "${VERSION}" -s "${wrap}" builds/firmware-*/manifest.json \
+            > site/firmware/manifest.json
+
+          ls -l site/firmware
+          jq -r '.builds[] | "\(.chipFamily): \(.parts[0].path)"' site/firmware/manifest.json
+
+      - name: Upload firmware bundle
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: web-flasher-firmware
           path: site/firmware
           retention-days: 30
 
@@ -78,7 +150,7 @@ jobs:
   publish:
     name: Publish web flasher
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: build
+    needs: site
     runs-on: ubuntu-latest
     permissions:
       pages: write

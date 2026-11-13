@@ -74,8 +74,8 @@ MPRN or your `secrets.yaml` publicly.
 ## What you need
 
 - An ESB Networks smart meter with the P1 port enabled.
-- An ESP32 board, or a ready-made P1 reader that runs ESPHome. The
-  configuration defaults to an ESP32-C6-WROOM-1 on an ESP32-C6-DevKitC-1.
+- An ESP32 board, or a ready-made P1 reader that runs ESPHome. Ready-made
+  firmware is provided for the ESP32-C6, classic ESP32, ESP32-S3 and ESP32-C3.
 - An RJ12 (6P6C) cable.
 - A resistor of 1 kΩ to 4.7 kΩ, if you are wiring a bare board.
 - Home Assistant with the ESPHome integration.
@@ -88,11 +88,22 @@ There are two ways to get the firmware onto a board.
 
 ### Option 1: web flasher
 
-For an ESP32-C6-DevKitC-1 (ESP32-C6-WROOM-1) wired with the P1 data line on
-GPIO6. Nothing to install: open the flasher page in Chrome or Edge on a desktop
-computer and follow the steps.
+Nothing to install: open the flasher page in Chrome or Edge on a desktop
+computer, choose your board and follow the steps.
 
 **<https://rossjmccarthy.github.io/ESB-Ireland-Networks-P1-Device/>**
+
+| Chip | P1 data pin | Status |
+| --- | --- | --- |
+| ESP32-C6 | GPIO6 | Flashed and added to Home Assistant by this project. Not yet confirmed on a meter |
+| ESP32 (classic) | GPIO16 | Compiles. Not yet tried on a board |
+| ESP32-S3 | GPIO18 | Compiles. Not yet tried on a board |
+| ESP32-C3 | GPIO6 | Compiles. Not yet tried on a board |
+
+The page shows the wiring for the board you choose and installs the matching
+build. If you pick the wrong chip the installer refuses, so a wrong choice
+cannot flash the wrong firmware. Board details are in
+[docs/hardware.md](docs/hardware.md#supported-boards).
 
 Unplug the RJ12 cable from the meter before connecting USB. The ready-made
 firmware contains no Wi-Fi details or keys, so the flasher asks for your Wi-Fi
@@ -156,12 +167,13 @@ GitHub, so it only works while the repository is public.
 
 | File | Purpose |
 | --- | --- |
-| `esphome/esb-p1-reader.yaml` | Core configuration: board, serial port, sensors. No secrets |
-| `esphome/esb-p1-reader.factory.yaml` | Builds the ready-made firmware for the web flasher |
+| `esphome/esb-p1-reader.yaml` | Core configuration: serial port and sensors. No secrets |
+| `esphome/boards/*.yaml` | One file per ready-made build: the board and its P1 data pin |
+| `esphome/esb-p1-reader.factory.yaml` | Builds the ready-made firmware for the web flasher, once per board file |
 | `esphome/esb-p1-reader.secure.example.yaml` | Example of your own configuration, with Wi-Fi details and encryption |
 | `esphome/secrets.yaml.example` | Template for your `secrets.yaml` |
 | `web/index.html` | The web flasher page |
-| `.github/workflows/firmware.yml` | Builds the firmware and publishes the flasher page on every change to `main` |
+| `.github/workflows/firmware.yml` | Builds the firmware for every board and publishes the flasher page on every change to `main` |
 
 ## Home Assistant Energy dashboard
 

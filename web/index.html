@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ESB P1 Reader: web flasher</title>
-  <meta name="description" content="Flash an ESP32-C6 with ESPHome firmware that reads the P1 port of an ESB Networks smart meter.">
+  <meta name="description" content="Flash an ESP32 board with ESPHome firmware that reads the P1 port of an ESB Networks smart meter.">
   <style>
     :root {
       --bg: #f6f7f9; --card: #ffffff; --text: #1b2430; --muted: #5a6675;
@@ -40,6 +40,26 @@
       border-radius: 4px; padding: 1px 5px;
     }
     .install { margin: 14px 0 4px; }
+    .boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 4px 0 14px; }
+    .boards label {
+      display: block; border: 2px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; cursor: pointer; background: var(--bg);
+    }
+    .boards label:hover { border-color: var(--accent); }
+    .boards input { position: absolute; opacity: 0; }
+    .boards input:checked + span { color: var(--accent); }
+    .boards label:has(input:checked) { border-color: var(--accent); }
+    .boards label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .boards strong { display: block; font-size: 1.05rem; }
+    .boards small { color: var(--muted); }
+    .pin {
+      border-left: 4px solid var(--accent); background: var(--bg);
+      padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 0 0 12px;
+    }
+    .pin strong.gpio { font-size: 1.15rem; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    [hidden] { display: none !important; }
     .note { color: var(--muted); font-size: 0.93rem; }
     footer { color: var(--muted); font-size: 0.9rem; margin-top: 28px; }
   </style>
@@ -48,8 +68,8 @@
 <main>
   <h1>ESB P1 Reader</h1>
   <p class="lead">
-    Flash an ESP32-C6 from your browser with ESPHome firmware that reads the P1
-    port of an ESB Networks smart meter and sends the data to Home Assistant.
+    Flash an ESP32 board from your browser with ESPHome firmware that reads the
+    P1 port of an ESB Networks smart meter and sends the data to Home Assistant.
   </p>
 
   <section class="warn">
@@ -73,29 +93,43 @@
   </section>
 
   <section>
-    <h2>What this firmware expects</h2>
-    <ul>
-      <li>An <strong>ESP32-C6</strong> board (built for the ESP32-C6-DevKitC-1 with an ESP32-C6-WROOM-1 module, 4&nbsp;MB flash or more).</li>
-      <li>The P1 data line (RJ12 pin 5) wired to <strong>GPIO6</strong>, with a pull-up resistor to 3.3&nbsp;V.</li>
-      <li>The P1 port enabled in your ESB Networks online account.</li>
-    </ul>
+    <h2>1. Choose your board</h2>
+    <p>Pick the chip on your board. It is usually printed on the metal can of the module.</p>
+    <div class="boards" id="boards" role="radiogroup" aria-label="Board"></div>
+
+    <div id="board-info" hidden>
+      <p class="pin">
+        Wire the P1 data line (RJ12 pin 5) to
+        <strong class="gpio" id="board-pin"></strong>, with a pull-up resistor
+        to 3.3&nbsp;V.
+      </p>
+      <ul>
+        <li id="board-example"></li>
+        <li id="board-usb"></li>
+        <li id="board-note" hidden></li>
+        <li id="board-status"></li>
+      </ul>
+    </div>
+    <p class="note" id="board-prompt">Choose a board to see its wiring and the install button.</p>
     <p class="note" style="margin-top:10px">
-      A different board or pin needs its own build. See the
+      Every build needs 4&nbsp;MB of flash or more and the P1 port enabled in
+      your ESB Networks online account. A different chip or pin needs its own
+      build: see the
       <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device#readme">README</a>
       and the
       <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device/blob/main/docs/hardware.md">wiring notes</a>.
     </p>
   </section>
 
-  <section>
-    <h2>Install</h2>
+  <section id="install-section" hidden>
+    <h2>2. Install</h2>
     <ol>
       <li><strong>Unplug the RJ12 cable from the meter.</strong> Do not power the board from USB and the meter at the same time.</li>
-      <li>Connect the board to this computer with a USB data cable. On a DevKitC-1, use the port labelled <strong>USB</strong>, so the installer can ask for your Wi-Fi details afterwards.</li>
+      <li>Connect the board to this computer with a USB data cable.</li>
       <li>Press the button, pick the board's serial port, and choose to erase the device when asked.</li>
     </ol>
     <div class="install">
-      <esp-web-install-button manifest="firmware/manifest.json">
+      <esp-web-install-button id="install-button">
         <span slot="unsupported">
           <strong>Your browser cannot do this.</strong> Use Chrome or Edge on a
           desktop computer. Firefox, Safari and phone browsers do not support
@@ -108,19 +142,21 @@
       </esp-web-install-button>
     </div>
     <p class="note">
-      If no port appears, try another cable (many are charge-only) or hold the
-      board's BOOT button while plugging it in.
+      If the installer says your board is not supported, the chip is not the
+      one you chose above: go back and pick the right one. If no port appears,
+      try another cable (many are charge-only) or hold the board's BOOT button
+      while plugging it in.
     </p>
   </section>
 
   <section>
-    <h2>After flashing</h2>
+    <h2>3. After flashing</h2>
     <ol>
       <li>
         <strong>Give it your Wi-Fi details.</strong> The installer offers this
         when it finishes. If it does not, join the hotspot named
         <code>esb-p1-reader-xxxxxx</code> from your phone and enter them there.
-        The ESP32-C6 uses 2.4&nbsp;GHz Wi-Fi only.
+        These boards use 2.4&nbsp;GHz Wi-Fi only.
       </li>
       <li>
         <strong>Add it to Home Assistant.</strong> It appears under
@@ -147,6 +183,77 @@
     </p>
   </footer>
 </main>
+<script>
+  // One entry per file in esphome/boards/. Keep the pins in step with them.
+  const BOARDS = [
+    {
+      id: "esp32c6", name: "ESP32-C6", pin: "GPIO6",
+      example: "Built for the ESP32-C6-DevKitC-1 (ESP32-C6-WROOM-1 module).",
+      usb: "If your board has two USB ports, use the one labelled USB, so the installer can ask for your Wi-Fi details afterwards.",
+      status: "Flashed and added to Home Assistant by this project. Not yet confirmed on a meter."
+    },
+    {
+      id: "esp32", name: "ESP32", pin: "GPIO16",
+      example: "Built for classic ESP32 development boards such as the ESP32-DevKitC and NodeMCU-32S (ESP32-WROOM-32 module).",
+      usb: "Use the board's USB port.",
+      note: "Not for ESP32-WROVER modules: they use GPIO16 for their extra memory.",
+      status: "Compiles, but not yet tried on a board by this project."
+    },
+    {
+      id: "esp32s3", name: "ESP32-S3", pin: "GPIO18",
+      example: "Built for the ESP32-S3-DevKitC-1.",
+      usb: "If your board has two USB ports, use the one labelled USB, so the installer can ask for your Wi-Fi details afterwards.",
+      status: "Compiles, but not yet tried on a board by this project."
+    },
+    {
+      id: "esp32c3", name: "ESP32-C3", pin: "GPIO6",
+      example: "Built for ESP32-C3 boards such as the ESP32-C3-DevKitM-1 and the C3 Super Mini.",
+      usb: "On boards whose USB port goes through a serial chip (such as the DevKitM-1), the installer cannot ask for Wi-Fi details: use the setup hotspot instead.",
+      status: "Compiles, but not yet tried on a board by this project."
+    }
+  ];
+
+  const group = document.getElementById("boards");
+  const el = (id) => document.getElementById(id);
+
+  function choose(board) {
+    el("board-pin").textContent = board.pin;
+    el("board-example").textContent = board.example;
+    el("board-usb").textContent = board.usb;
+    el("board-note").textContent = board.note || "";
+    el("board-note").hidden = !board.note;
+    el("board-status").textContent = board.status;
+    el("board-info").hidden = false;
+    el("board-prompt").hidden = true;
+    el("install-button").setAttribute("manifest", "firmware/" + board.id + ".manifest.json");
+    el("install-section").hidden = false;
+  }
+
+  for (const board of BOARDS) {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "board";
+    input.value = board.id;
+    input.addEventListener("change", () => choose(board));
+    const text = document.createElement("span");
+    const name = document.createElement("strong");
+    name.textContent = board.name;
+    const pin = document.createElement("small");
+    pin.textContent = "Data on " + board.pin;
+    text.append(name, pin);
+    label.append(input, text);
+    group.append(label);
+  }
+
+  // Allow a direct link to one board, for example ?board=esp32c3
+  const wanted = new URLSearchParams(location.search).get("board");
+  const preset = BOARDS.find((b) => b.id === wanted);
+  if (preset) {
+    group.querySelector('input[value="' + preset.id + '"]').checked = true;
+    choose(preset);
+  }
+</script>
 <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
 </body>
 </html>

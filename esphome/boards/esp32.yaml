@@ -1,0 +1,15 @@
+# ESP32 (classic, for example ESP32-DevKitC or NodeMCU-32S)
+#
+# Board settings for the ready-made firmware. Wire the P1 data line (RJ12
+# pin 5) to GPIO16. See docs/hardware.md.
+#
+# This is also the file the ESPHome dashboard imports when you adopt a device
+# flashed with this build.
+
+substitutions:
+  board: esp32dev
+  variant: esp32
+  rx_pin: GPIO16
+
+packages:
+  core: !include ../esb-p1-reader.yaml
