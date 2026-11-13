@@ -1,0 +1,28 @@
+# Builds the ready-made firmware offered by the web flasher.
+#
+# It adds what a device needs when it is flashed with no settings of its own:
+# a way to give it Wi-Fi details over USB, and a link back to the core
+# configuration so the ESPHome dashboard can adopt it.
+#
+# This firmware contains no secrets. Until you adopt the device and add your
+# own encryption key, anyone on your network can read its sensors and update
+# its firmware. See "After flashing" in the README.
+
+substitutions:
+  # Replaced with the build version by the GitHub workflow.
+  project_version: dev
+
+packages:
+  core: !include esb-p1-reader.yaml
+
+esphome:
+  project:
+    name: rossjmccarthy.esb-p1-reader
+    version: ${project_version}
+
+# Where the ESPHome dashboard finds the configuration when you adopt the device.
+dashboard_import:
+  package_import_url: github://rossjmccarthy/ESB-Ireland-Networks-P1-Device/esphome/esb-p1-reader.yaml@main
+
+# Lets the web flasher ask for your Wi-Fi details over USB after flashing.
+improv_serial:

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESB P1 Reader: web flasher</title>
+  <meta name="description" content="Flash an ESP32-C6 with ESPHome firmware that reads the P1 port of an ESB Networks smart meter.">
+  <style>
+    :root {
+      --bg: #f6f7f9; --card: #ffffff; --text: #1b2430; --muted: #5a6675;
+      --border: #d9dee5; --accent: #0b6bcb; --warn-bg: #fff6e0; --warn-border: #e2b100;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #12161c; --card: #1b212a; --text: #e8ecf1; --muted: #9aa6b4;
+        --border: #2e3744; --accent: #6db3ff; --warn-bg: #2d2610; --warn-border: #a88400;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 720px; margin: 0 auto; padding: 24px 16px 56px; }
+    h1 { font-size: 1.7rem; margin: 8px 0 4px; }
+    h2 { font-size: 1.15rem; margin: 0 0 10px; }
+    p { margin: 0 0 12px; }
+    .lead { color: var(--muted); margin-bottom: 20px; }
+    section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 20px; margin: 16px 0;
+    }
+    section.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+    ol, ul { margin: 0; padding-left: 22px; }
+    li { margin: 6px 0; }
+    a { color: var(--accent); }
+    code {
+      font: 0.92em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px;
+    }
+    .install { margin: 14px 0 4px; }
+    .note { color: var(--muted); font-size: 0.93rem; }
+    footer { color: var(--muted); font-size: 0.9rem; margin-top: 28px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>ESB P1 Reader</h1>
+  <p class="lead">
+    Flash an ESP32-C6 from your browser with ESPHome firmware that reads the P1
+    port of an ESB Networks smart meter and sends the data to Home Assistant.
+  </p>
+
+  <section class="warn">
+    <h2>Before you flash</h2>
+    <ul>
+      <li>
+        Read the
+        <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device/blob/main/DISCLAIMER.md">disclaimer</a>.
+        Use of the P1 port is subject to ESB Networks' conditions. A self-built
+        device is not a certified product, and you fit one at your own risk.
+      </li>
+      <li>
+        This is an independent community project. It is not affiliated with or
+        supported by ESB Networks.
+      </li>
+      <li>
+        This firmware is early. It has not yet been confirmed on a meter by
+        this project.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What this firmware expects</h2>
+    <ul>
+      <li>An <strong>ESP32-C6</strong> board (built for the ESP32-C6-DevKitC-1 with an ESP32-C6-WROOM-1 module, 4&nbsp;MB flash or more).</li>
+      <li>The P1 data line (RJ12 pin 5) wired to <strong>GPIO6</strong>, with a pull-up resistor to 3.3&nbsp;V.</li>
+      <li>The P1 port enabled in your ESB Networks online account.</li>
+    </ul>
+    <p class="note" style="margin-top:10px">
+      A different board or pin needs its own build. See the
+      <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device#readme">README</a>
+      and the
+      <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device/blob/main/docs/hardware.md">wiring notes</a>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Install</h2>
+    <ol>
+      <li><strong>Unplug the RJ12 cable from the meter.</strong> Do not power the board from USB and the meter at the same time.</li>
+      <li>Connect the board to this computer with a USB data cable. On a DevKitC-1, use the port labelled <strong>USB</strong>, so the installer can ask for your Wi-Fi details afterwards.</li>
+      <li>Press the button, pick the board's serial port, and choose to erase the device when asked.</li>
+    </ol>
+    <div class="install">
+      <esp-web-install-button manifest="firmware/manifest.json">
+        <span slot="unsupported">
+          <strong>Your browser cannot do this.</strong> Use Chrome or Edge on a
+          desktop computer. Firefox, Safari and phone browsers do not support
+          Web Serial.
+        </span>
+        <span slot="not-allowed">
+          <strong>This page must be opened over HTTPS</strong> for the
+          installer to work.
+        </span>
+      </esp-web-install-button>
+    </div>
+    <p class="note">
+      If no port appears, try another cable (many are charge-only) or hold the
+      board's BOOT button while plugging it in.
+    </p>
+  </section>
+
+  <section>
+    <h2>After flashing</h2>
+    <ol>
+      <li>
+        <strong>Give it your Wi-Fi details.</strong> The installer offers this
+        when it finishes. If it does not, join the hotspot named
+        <code>esb-p1-reader-xxxxxx</code> from your phone and enter them there.
+        The ESP32-C6 uses 2.4&nbsp;GHz Wi-Fi only.
+      </li>
+      <li>
+        <strong>Add it to Home Assistant.</strong> It appears under
+        Settings, Devices &amp; services as a discovered ESPHome device.
+      </li>
+      <li>
+        <strong>Secure it.</strong> This shared firmware holds no secrets, so
+        until you add your own, anyone on your network can read its sensors
+        and update its firmware, and its setup hotspot has no password. Adopt
+        it in the ESPHome dashboard and add an encryption key, as described
+        in the
+        <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device#after-flashing-secure-the-device">README</a>.
+      </li>
+      <li>Unplug USB, then connect the board to the meter's P1 port.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>
+      <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device">Source and documentation</a>
+      &middot; MIT licence &middot; Built with
+      <a href="https://esphome.io/">ESPHome</a> and
+      <a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools</a>.
+    </p>
+  </footer>
+</main>
+<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+</body>
+</html>

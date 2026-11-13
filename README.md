@@ -5,8 +5,9 @@ Read near real-time electricity data from the P1 port of an ESB Networks
 your own network.
 
 The firmware is [ESPHome](https://esphome.io/). This repository provides a
-configuration for it, wiring notes for a generic ESP32, and what is known so
-far about the Irish telegram format.
+configuration for it, a web page that flashes a ready-made build from your
+browser, wiring notes, and what is known so far about the Irish telegram
+format.
 
 > **Status: early.** The configuration passes ESPHome's validation but this
 > project has not yet confirmed it on a meter. The register list comes from a
@@ -83,22 +84,84 @@ Wiring is in [docs/hardware.md](docs/hardware.md).
 
 ## Flashing
 
+There are two ways to get the firmware onto a board.
+
+### Option 1: web flasher
+
+For an ESP32-C6-DevKitC-1 (ESP32-C6-WROOM-1) wired with the P1 data line on
+GPIO6. Nothing to install: open the flasher page in Chrome or Edge on a desktop
+computer and follow the steps.
+
+**<https://rossjmccarthy.github.io/ESB-Ireland-Networks-P1-Device/>**
+
+Unplug the RJ12 cable from the meter before connecting USB. The ready-made
+firmware contains no Wi-Fi details or keys, so the flasher asks for your Wi-Fi
+afterwards. Then follow "After flashing" below.
+
+### Option 2: build it yourself
+
+For any other board or pin, or if you would rather the device was secured from
+its first boot.
+
 1. Install ESPHome: either the ESPHome add-on in Home Assistant or the
    [command-line tool](https://esphome.io/install/).
 2. Copy `esphome/secrets.yaml.example` to `esphome/secrets.yaml` and fill in
    your own values. Generate your own API key; do not reuse one from a guide.
-3. Edit the `substitutions` at the top of `esphome/esb-p1-reader.yaml` so
-   `board`, `variant` and `rx_pin` match your hardware.
+3. Copy `esphome/esb-p1-reader.secure.example.yaml` to a file of your own, for
+   example `esphome/my-meter.yaml`, and set `board`, `variant` and `rx_pin` in
+   it if your hardware differs from the defaults.
 4. With the RJ12 cable unplugged, connect the board by USB and run:
 
    ```bash
-   esphome run esphome/esb-p1-reader.yaml
+   esphome run esphome/my-meter.yaml
    ```
 
 5. Unplug USB, connect the board to the meter, and add the device in Home
    Assistant when it is discovered.
 
 Later changes can be flashed over Wi-Fi.
+
+## After flashing: secure the device
+
+This applies to the web flasher only. Option 2 already does all of it.
+
+The ready-made firmware is the same file for everyone, so it cannot contain a
+secret. Until you add your own:
+
+- anyone on your network can read the sensors and push new firmware to it, and
+- the setup hotspot it opens when it loses Wi-Fi has no password, so someone
+  within range of your meter box could reconfigure it.
+
+To fix that, adopt the device in the ESPHome dashboard (it appears under
+"Discovered" once it is on your Wi-Fi). Adopting creates a configuration of
+your own with an API encryption key. Then add these two blocks to that
+configuration and install it over Wi-Fi:
+
+```yaml
+ota:
+  - id: !extend ota_esphome
+    encryption:
+
+wifi:
+  ap:
+    password: !secret ap_password
+```
+
+`esphome/esb-p1-reader.secure.example.yaml` shows the complete result.
+
+Adopting needs the dashboard to fetch this repository's configuration from
+GitHub, so it only works while the repository is public.
+
+## Files
+
+| File | Purpose |
+| --- | --- |
+| `esphome/esb-p1-reader.yaml` | Core configuration: board, serial port, sensors. No secrets |
+| `esphome/esb-p1-reader.factory.yaml` | Builds the ready-made firmware for the web flasher |
+| `esphome/esb-p1-reader.secure.example.yaml` | Example of your own configuration, with Wi-Fi details and encryption |
+| `esphome/secrets.yaml.example` | Template for your `secrets.yaml` |
+| `web/index.html` | The web flasher page |
+| `.github/workflows/firmware.yml` | Builds the firmware and publishes the flasher page on every change to `main` |
 
 ## Home Assistant Energy dashboard
 

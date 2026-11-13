@@ -1,6 +1,12 @@
 # ESPHome configuration for reading the P1 port of an ESB Networks (Ireland)
 # smart meter with an ESP32 board and sending the data to Home Assistant.
 #
+# This is the core configuration. It contains no secrets, so it can be:
+#   - built into the ready-made firmware for the web flasher
+#     (esb-p1-reader.factory.yaml), and
+#   - used as a package by your own configuration, which adds your Wi-Fi
+#     details and encryption key (esb-p1-reader.secure.example.yaml).
+#
 # Defaults are for an ESP32-C6-WROOM-1 module on an ESP32-C6-DevKitC-1 board.
 #
 # Status: validated with `esphome config`. Not yet confirmed on a meter by this
@@ -9,11 +15,6 @@
 #
 # Use of the P1 port is subject to ESB Networks' conditions, and you connect a
 # device at your own risk. Read DISCLAIMER.md before fitting anything.
-#
-# Before flashing:
-#   1. Copy secrets.yaml.example to secrets.yaml and fill it in.
-#   2. Set `board`, `variant` and `rx_pin` below to match your hardware
-#      (docs/hardware.md).
 
 substitutions:
   device_name: esb-p1-reader
@@ -27,6 +28,9 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
+  # Adds part of the MAC address to the name, so one firmware image gives
+  # every device a unique name.
+  name_add_mac_suffix: true
 
 esp32:
   board: ${board}
@@ -37,24 +41,21 @@ esp32:
 logger:
   level: INFO
 
-# Native, encrypted connection to Home Assistant. Nothing leaves your network.
+# Native connection to Home Assistant. Nothing leaves your network. Your own
+# configuration should add an encryption key (see the secure example).
 api:
-  encryption:
-    key: !secret api_encryption_key
 
-# Over-the-air updates, encrypted with the API key above.
+# Over-the-air updates. Your own configuration should turn on encryption.
 ota:
   - platform: esphome
-    encryption:
+    id: ota_esphome
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  # Hotspot the device opens if it cannot join your Wi-Fi.
+  # Setup hotspot, opened only when the device cannot join a Wi-Fi network.
+  # Your own configuration should give it a password.
   ap:
-    ssid: "${friendly_name} Setup"
-    password: !secret ap_password
 
+# Lets you enter Wi-Fi details through the setup hotspot.
 captive_portal:
 
 uart:

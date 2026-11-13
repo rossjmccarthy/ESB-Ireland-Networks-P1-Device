@@ -82,7 +82,8 @@ that GPIO6 is broken out and free, or pick another pin outside the table and
 change `rx_pin`.
 
 The DevKitC-1 has two USB-C ports. Either can flash the board. ESPHome sends
-its log to the native "USB" port by default on the C6.
+its log to the native "USB" port by default on the C6, and the web flasher can
+only ask for your Wi-Fi details over that port, so use the one labelled "USB".
 
 The ESP32-C6 is a 2.4 GHz device (Wi-Fi 6). It does not use 5 GHz.
 

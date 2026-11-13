@@ -1,0 +1,95 @@
+name: Firmware and web flasher
+
+# Builds the ready-made firmware and publishes the web flasher page to GitHub
+# Pages. Pull requests only build.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "esphome/**"
+      - "web/**"
+      - ".github/workflows/firmware.yml"
+  pull_request:
+    paths:
+      - "esphome/**"
+      - "web/**"
+      - ".github/workflows/firmware.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: firmware-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build firmware
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set firmware version
+        id: version
+        run: echo "version=$(date -u +%Y.%m.%d).${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build firmware
+        id: esphome
+        uses: esphome/build-action@ae5408cdbc4f70692bf8e345c4982bca05a93667  # v8.1.0
+        with:
+          yaml-file: esphome/esb-p1-reader.factory.yaml
+          version: 2026.10.2
+          complete-manifest: true
+          substitutions: |
+            project_version=${{ steps.version.outputs.version }}
+
+      - name: Assemble site
+        env:
+          NAME: ${{ steps.esphome.outputs.name }}
+        run: |
+          set -euo pipefail
+          mkdir -p site/firmware
+          cp -r web/. site/
+          cp "${NAME}/${NAME}.factory.bin" "${NAME}/${NAME}.ota.bin" site/firmware/
+          jq '.name = "ESB P1 Reader" | .new_install_prompt_erase = true' \
+            "${NAME}/manifest.json" > site/firmware/manifest.json
+          touch site/.nojekyll
+          cat site/firmware/manifest.json
+          ls -l site/firmware
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: firmware
+          path: site/firmware
+          retention-days: 30
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        with:
+          path: site
+          retention-days: 1
+
+  publish:
+    name: Publish web flasher
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Set up Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d  # v6.0.0
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1

@@ -1,0 +1,41 @@
+# Example of your own configuration: the core package plus your Wi-Fi details
+# and encryption. Use this if you build the firmware yourself, or as the
+# settings to add after adopting a web-flashed device.
+#
+# Copy this file (for example to my-meter.yaml), copy secrets.yaml.example to
+# secrets.yaml, fill that in, then run:
+#   esphome run my-meter.yaml
+
+substitutions:
+  device_name: esb-p1-reader
+  friendly_name: ESB P1 Reader
+  # Uncomment and change these if you are not using an ESP32-C6-DevKitC-1 with
+  # the P1 data line on GPIO6.
+  # board: esp32dev
+  # variant: esp32
+  # rx_pin: GPIO16
+
+packages:
+  core: !include esb-p1-reader.yaml
+  # Or, to use the published copy instead of a local file:
+  # core: github://rossjmccarthy/ESB-Ireland-Networks-P1-Device/esphome/esb-p1-reader.yaml@main
+
+esphome:
+  name: ${device_name}
+  name_add_mac_suffix: false
+
+# Encrypts the connection to Home Assistant.
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+# Encrypts over-the-air updates with the same key.
+ota:
+  - id: !extend ota_esphome
+    encryption:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    password: !secret ap_password
