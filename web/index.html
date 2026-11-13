@@ -112,13 +112,16 @@
           <tr><td>2 (data request)</td><td>RJ12 pin 1</td></tr>
           <tr><td>3 (data ground)</td><td>The board's <strong>GND</strong></td></tr>
           <tr><td>4</td><td>Nothing</td></tr>
-          <tr><td>5 (data)</td><td><strong class="board-pin-2"></strong>. Also fit a resistor (1&nbsp;k&ohm; to 4.7&nbsp;k&ohm;) between <span class="board-pin-2"></span> and the board's <strong>3V3</strong> pin</td></tr>
+          <tr><td>5 (data)</td><td><strong class="board-pin-2"></strong>. A resistor (1&nbsp;k&ohm; to 4.7&nbsp;k&ohm;) between <span class="board-pin-2"></span> and the board's <strong>3V3</strong> pin is recommended</td></tr>
           <tr><td>6 (power ground)</td><td>The board's <strong>GND</strong></td></tr>
         </tbody>
       </table>
       <p class="note" style="margin-top:10px">
-        The resistor is needed because the meter can only pull the data line
-        low; the resistor pulls it back up. Never connect it to 5&nbsp;V.
+        The meter can only pull the data line low, so something has to pull
+        it back up. The firmware turns on the chip's built-in pull-up, which
+        may be enough on its own, but it is weak: if readings are missing or
+        the log shows CRC errors, fit the resistor. Never connect it to
+        5&nbsp;V.
         Check which plug contact is pin 1, and the cable's polarity, in the
         <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device/blob/main/docs/hardware.md#pinout">wiring notes</a>
         before you connect anything.

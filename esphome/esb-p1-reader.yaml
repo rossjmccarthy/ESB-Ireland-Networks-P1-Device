@@ -72,6 +72,14 @@ uart:
     # The P1 data line is logically inverted. Inverting it here means no
     # transistor is needed on the board.
     inverted: true
+    # The meter can only pull the data line low, so something must pull it
+    # high. This turns on the chip's built-in pull-up as a fallback. It is
+    # weak (tens of kilohms), so an external resistor of 1 k to 4.7 k from
+    # this pin to 3.3 V is still recommended, and is needed if you see CRC
+    # errors. The two can be used together.
+    mode:
+      input: true
+      pullup: true
 
 dsmr:
   id: p1_meter

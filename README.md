@@ -77,7 +77,9 @@ MPRN or your `secrets.yaml` publicly.
 - An ESP32 board, or a ready-made P1 reader that runs ESPHome. Ready-made
   firmware is provided for the ESP32-C6, classic ESP32, ESP32-S3 and ESP32-C3.
 - An RJ12 (6P6C) cable.
-- A resistor of 1 kΩ to 4.7 kΩ, if you are wiring a bare board.
+- A resistor of 1 kΩ to 4.7 kΩ, if you are wiring a bare board. The firmware
+  turns on the chip's built-in pull-up, so it may work without one, but the
+  resistor is recommended.
 - Home Assistant with the ESPHome integration.
 
 Wiring is in [docs/hardware.md](docs/hardware.md).
@@ -189,7 +191,7 @@ why the configuration provides a rebuilt one. Details are in
 | Symptom | Likely cause |
 | --- | --- |
 | No data at all | P1 port not enabled yet, data request pin not tied to 5 V, or RJ12 not fully seated |
-| CRC errors in the log | Missing or too-weak pull-up on the data line, `inverted: true` removed, or cable too long |
+| CRC errors in the log | No resistor on the data line (the built-in pull-up alone is too weak for your setup), `inverted: true` removed, or cable too long |
 | Board resets or will not boot on meter power | The port cannot supply the Wi-Fi current peaks. See "Power" in [docs/hardware.md](docs/hardware.md) |
 | `1.8.0` does not match the meter display | Known truncation. Use `Import Total (sum of tariffs)` |
 

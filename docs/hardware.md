@@ -67,10 +67,15 @@ Notes:
   this line is held at 5 V. Tying it to pin 1 makes the meter send
   continuously. Whether ESB Networks meters need this has not been confirmed
   here, and tying it high is harmless either way.
-- **Pull-up on the data line (pin 5).** The output is open collector, so it
-  needs a pull-up. Use a resistor of 1 kΩ to 4.7 kΩ from the data line to the
-  ESP32's **3.3 V** pin. Do not pull it up to 5 V: ESP32 GPIOs are not 5 V
-  tolerant.
+- **Pull-up on the data line (pin 5).** The output is open collector: the
+  meter can only pull the line low, so something must pull it high. Fit a
+  resistor of 1 kΩ to 4.7 kΩ from the data line to the ESP32's **3.3 V** pin.
+  Do not pull it up to 5 V: ESP32 GPIOs are not 5 V tolerant.
+
+  The firmware also turns on the chip's built-in pull-up, so a board with no
+  resistor may work. That pull-up is weak (tens of kilohms) and can be too
+  slow for 115200 baud, which shows up as CRC errors or missing readings. If
+  you see either, fit the resistor. Using both together is fine.
 - **Inversion.** The signal is inverted compared with normal UART. The config
   handles this in software with `inverted: true`, so no transistor is needed.
 
