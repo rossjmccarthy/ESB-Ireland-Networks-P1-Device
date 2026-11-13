@@ -1,0 +1,9 @@
+# Credentials
+secrets.yaml
+
+# ESPHome build output
+.esphome/
+
+# Raw telegram captures can identify a meter. Redact before sharing.
+captures/
+*.telegram

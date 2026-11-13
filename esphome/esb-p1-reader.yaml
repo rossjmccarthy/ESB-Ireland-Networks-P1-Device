@@ -1,0 +1,182 @@
+# ESPHome configuration for reading the P1 port of an ESB Networks (Ireland)
+# smart meter with a generic ESP32 board and sending the data to Home Assistant.
+#
+# Status: validated with `esphome config`. Not yet confirmed on a meter by this
+# project. The register list comes from a third-party report on a single-phase
+# Sagemcom XS211 (see docs/telegram.md for the source and its caveats).
+#
+# Before flashing:
+#   1. Copy secrets.yaml.example to secrets.yaml and fill it in.
+#   2. Set `board` and `rx_pin` below to match your hardware (docs/hardware.md).
+
+substitutions:
+  device_name: esb-p1-reader
+  friendly_name: ESB P1 Reader
+  board: esp32dev
+  # GPIO wired to the P1 data line (RJ12 pin 5). Pick a pin that is free on
+  # your board and is not a strapping pin.
+  rx_pin: GPIO16
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: ${board}
+  framework:
+    type: esp-idf
+
+logger:
+  level: INFO
+
+# Native, encrypted connection to Home Assistant. Nothing leaves your network.
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Hotspot the device opens if it cannot join your Wi-Fi.
+  ap:
+    ssid: "${friendly_name} Setup"
+    password: !secret ap_password
+
+captive_portal:
+
+uart:
+  id: p1_uart
+  baud_rate: 115200
+  data_bits: 8
+  parity: NONE
+  stop_bits: 1
+  rx_buffer_size: 3000
+  rx_pin:
+    number: ${rx_pin}
+    # The P1 data line is logically inverted. Inverting it here means no
+    # transistor is needed on the board.
+    inverted: true
+
+dsmr:
+  id: p1_meter
+  uart_id: p1_uart
+  max_telegram_length: 3000
+  crc_check: true
+
+sensor:
+  - platform: dsmr
+    # Imported energy per tariff register. These are sent in full and are the
+    # ones to trust. Which register is day, night or peak depends on your
+    # meter and plan: compare against the codes scrolling on the meter display.
+    energy_delivered_tariff1:
+      name: "Import Tariff 1 (1.8.1)"
+      id: import_t1
+    energy_delivered_tariff2:
+      name: "Import Tariff 2 (1.8.2)"
+      id: import_t2
+    energy_delivered_tariff3:
+      name: "Import Tariff 3 (1.8.3)"
+      id: import_t3
+
+    # Totals as the meter sends them. Reported to be truncated to the last
+    # four digits before the decimal point (see docs/telegram.md).
+    energy_delivered_lux:
+      name: "Import Total as sent (1.8.0)"
+    energy_returned_lux:
+      name: "Export Total as sent (2.8.0)"
+
+    # Instantaneous active power, in kW.
+    power_delivered:
+      name: "Import Power (1.7.0)"
+      accuracy_decimals: 3
+    power_returned:
+      name: "Export Power (2.7.0)"
+      accuracy_decimals: 3
+
+    # Reactive energy and power. Delete these if you have no use for them.
+    total_imported_energy:
+      name: "Reactive Energy Import (3.8.0)"
+    total_exported_energy:
+      name: "Reactive Energy Export (4.8.0)"
+    reactive_power_delivered:
+      name: "Reactive Power Import (3.7.0)"
+      accuracy_decimals: 3
+    reactive_power_returned:
+      name: "Reactive Power Export (4.7.0)"
+      accuracy_decimals: 3
+
+    current_l1:
+      name: "Current L1 (31.7.0)"
+
+    # Supply quality counters.
+    electricity_failures:
+      name: "Power Failures (96.7.21)"
+    electricity_sags_l1:
+      name: "Voltage Sags L1 (32.32.0)"
+    electricity_swells_l1:
+      name: "Voltage Swells L1 (32.36.0)"
+
+    # Three-phase meters are untested. If you have one, try uncommenting:
+    # current_l2:
+    #   name: "Current L2 (51.7.0)"
+    # current_l3:
+    #   name: "Current L3 (71.7.0)"
+
+  # Import total rebuilt from the three tariff registers, because the meter's
+  # own 1.8.0 total is reported to be truncated. Use this one for the Home
+  # Assistant Energy dashboard.
+  - platform: template
+    name: "Import Total (sum of tariffs)"
+    id: import_total
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+    update_interval: 10s
+    lambda: |-
+      const float t1 = id(import_t1).state;
+      const float t2 = id(import_t2).state;
+      const float t3 = id(import_t3).state;
+      if (std::isnan(t1) || std::isnan(t2) || std::isnan(t3)) {
+        return {};
+      }
+      return t1 + t2 + t3;
+
+  - platform: wifi_signal
+    name: "Wi-Fi Signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "Uptime"
+
+text_sensor:
+  - platform: dsmr
+    identification:
+      name: "Meter Identification"
+      entity_category: diagnostic
+    timestamp:
+      name: "Meter Clock (1.0.0)"
+      entity_category: diagnostic
+    electricity_switch_position:
+      name: "Supply Switch (96.3.10)"
+      entity_category: diagnostic
+
+    # Raw telegram, for debugging and for reporting a new meter model. It can
+    # contain identifiers for your meter, so redact before sharing it, and
+    # leave it commented out in normal use.
+    # telegram:
+    #   name: "Raw Telegram"
+    #   internal: true
+    #   on_value:
+    #     - logger.log:
+    #         level: INFO
+    #         format: "%s"
+    #         args: ["x.c_str()"]
+
+button:
+  - platform: restart
+    name: "Restart"
+    entity_category: diagnostic
