@@ -84,13 +84,32 @@ fails to boot when powered from the meter:
 - add a bulk capacitor (470 µF or more) between 5 V and ground at the board, or
 - lower the ESP32's power draw in the config (lower `cpu_frequency`, Wi-Fi
   `power_save_mode: HIGH`, reduced `output_power`), or
-- power the board from USB instead and leave RJ12 pin 1 disconnected from the
-  board's 5 V pin (pin 2 still goes to pin 1).
+- power the board from a USB supply instead (see below).
 
 Do not connect USB power and the meter's 5 V to the board at the same time
 unless you know your board isolates the two supplies. Many development boards
 do not, and you would be back-feeding one supply into the other. The simplest
 rule: when flashing over USB, unplug the RJ12 cable.
+
+### Running the board from USB power
+
+If the board runs from a USB supply, the meter's 5 V must not reach the board's
+5 V pin. The only wire that changes is the one from RJ12 pin 1 to the board:
+leave it out.
+
+| RJ12 pin | Powered by the meter | Powered by USB |
+| --- | --- | --- |
+| 1 (+5 V) | ESP32 `5V` **and** RJ12 pin 2 | RJ12 pin 2 **only** |
+| 2 (Data request) | RJ12 pin 1 | RJ12 pin 1 |
+| 3 (Data ground) | ESP32 `GND` | ESP32 `GND` |
+| 5 (Data out) | RX GPIO, pull-up to 3.3 V | RX GPIO, pull-up to 3.3 V |
+| 6 (Power ground) | ESP32 `GND` | ESP32 `GND` |
+
+Pins 1 and 2 stay joined to each other in both cases. That link is what holds
+the data request line at 5 V, using the meter's own supply, so the meter keeps
+sending. It never touches the board when the board is on USB power. Both
+ground pins stay connected in both cases: the data signal needs a shared
+ground.
 
 ## Reference board: ESP32-C6-WROOM-1
 
