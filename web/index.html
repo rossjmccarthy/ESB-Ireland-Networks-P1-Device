@@ -99,9 +99,29 @@
 
     <div id="board-info" hidden>
       <p class="pin">
-        Wire the P1 data line (RJ12 pin 5) to
-        <strong class="gpio" id="board-pin"></strong>, with a pull-up resistor
-        to 3.3&nbsp;V.
+        The P1 data line (RJ12 pin 5) goes to
+        <strong class="gpio" id="board-pin"></strong>. It is the only wire
+        that goes to a GPIO.
+      </p>
+      <table>
+        <thead>
+          <tr><th>RJ12 pin</th><th>Connect to</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1 (+5&nbsp;V)</td><td>The board's <strong>5V</strong> pin (sometimes labelled VIN), and RJ12 pin 2</td></tr>
+          <tr><td>2 (data request)</td><td>RJ12 pin 1</td></tr>
+          <tr><td>3 (data ground)</td><td>The board's <strong>GND</strong></td></tr>
+          <tr><td>4</td><td>Nothing</td></tr>
+          <tr><td>5 (data)</td><td><strong class="board-pin-2"></strong>. Also fit a resistor (1&nbsp;k&ohm; to 4.7&nbsp;k&ohm;) between <span class="board-pin-2"></span> and the board's <strong>3V3</strong> pin</td></tr>
+          <tr><td>6 (power ground)</td><td>The board's <strong>GND</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:10px">
+        The resistor is needed because the meter can only pull the data line
+        low; the resistor pulls it back up. Never connect it to 5&nbsp;V.
+        Check which plug contact is pin 1, and the cable's polarity, in the
+        <a href="https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device/blob/main/docs/hardware.md#pinout">wiring notes</a>
+        before you connect anything.
       </p>
       <ul>
         <li id="board-example"></li>
@@ -218,6 +238,7 @@
 
   function choose(board) {
     el("board-pin").textContent = board.pin;
+    for (const cell of document.querySelectorAll(".board-pin-2")) cell.textContent = board.pin;
     el("board-example").textContent = board.example;
     el("board-usb").textContent = board.usb;
     el("board-note").textContent = board.note || "";
