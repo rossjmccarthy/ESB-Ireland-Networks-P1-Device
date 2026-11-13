@@ -22,9 +22,13 @@ Networks Sagemcom XS211 (see [telegram.md](telegram.md) for the source).
 ESB Networks has not published a pinout that this project could find. The table
 below is the pinout from the Dutch DSMR 5.0.2 P1 Companion Standard. Readers
 built to that pinout are reported to work on ESB Networks meters, including
-taking their power from the port, so it is very likely correct. Check with a
-multimeter before connecting a board: you should see about 5 V between pin 1
-and pin 6.
+taking their power from the port, so it is very likely correct.
+
+![RJ12 pin numbering. On the plug, held with the gold contacts facing you, the tip pointing up and the latch tab on the back, pin 1 is the leftmost contact. On the meter socket, seen from the front with the latch notch at the bottom, pin 1 is the leftmost contact.](images/rj12-pinout.svg)
+
+Pin numbers are fixed relative to the latch, not to left and right on your
+meter. If the socket on your meter has its latch notch at the top, pin 1 is on
+the right as you look at it.
 
 | RJ12 pin | Signal | Connect to |
 | --- | --- | --- |
@@ -34,6 +38,28 @@ and pin 6.
 | 4 | Not connected | Leave unconnected |
 | 5 | Data out | ESP32 RX GPIO, with a pull-up resistor to **3.3 V** |
 | 6 | Power ground | ESP32 `GND` |
+
+### Check before you connect the board
+
+Wiring this backwards swaps +5 V and ground, which can destroy the board. Do
+all three checks first.
+
+1. **Count the contacts.** The plug must have six gold contacts (RJ12, 6P6C).
+   A plug with four is RJ11: it fits the socket but has no pin 1 or pin 6, so
+   it carries no power.
+2. **Do not trust wire colours or the cable.** Colours are not standardised.
+   Many flat telephone-style cables are "reversed": pin 1 at one end is pin 6
+   at the other. If you use a plug-to-plug cable into a breakout socket, a
+   reversed cable flips the whole pinout. Use a multimeter's continuity mode
+   to find which wire or terminal really goes to pin 1 of the plug that enters
+   the meter.
+3. **Measure the voltage and its polarity.** With the P1 port enabled, plug
+   the cable into the meter with nothing connected at the other end, and keep
+   the bare ends apart. Put the multimeter's red probe on the wire you believe
+   is pin 1 and the black probe on pin 6. You should read about **+5 V**. A
+   reading of about −5 V means the cable is reversed. No reading means the
+   port is not enabled, the plug is not seated, or the cable lacks pins 1
+   and 6.
 
 Notes:
 
