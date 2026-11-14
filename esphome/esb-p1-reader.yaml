@@ -11,9 +11,18 @@
 # Devices adopted from the first ESP32-C6 firmware import this file directly,
 # so keep those defaults as they are. Other boards override them in boards/.
 #
-# Status: validated with `esphome config`. Not yet confirmed on a meter by this
-# project. The register list comes from a third-party report on a single-phase
-# Sagemcom XS211 (see docs/telegram.md for the source and its caveats).
+# Status: working on one single-phase ESB Networks meter with an ESP32-C6
+# since 14 November 2026. The register list first came from a third-party
+# report on a single-phase Sagemcom XS211 (see docs/telegram.md).
+#
+# How often values are sent: the meter sends a telegram about once a second,
+# but this configuration does not pass every reading on. Each sensor has
+# filters that average or limit it, and send it only when it has really
+# changed, plus a regular "still alive" repeat. Home Assistant stores a new
+# row each time a value changes, so sending every reading would add hundreds
+# of thousands of rows a day to its database. Energy figures stay exact: the
+# meter's registers are cumulative, so nothing is lost between updates. To
+# change the rates, edit the "filters" lines below.
 #
 # Use of the P1 port is subject to ESB Networks' conditions, and you connect a
 # device at your own risk. Read DISCLAIMER.md before fitting anything.
@@ -92,53 +101,70 @@ sensor:
     # Imported energy per tariff register. These are sent in full and are the
     # ones to trust. Which register is day, night or peak depends on your
     # meter and plan: compare against the codes scrolling on the meter display.
+    # Energy registers are sent at most once a minute.
     energy_delivered_tariff1:
       name: "Import Tariff 1 (1.8.1)"
       id: import_t1
+      filters: [{throttle: 60s}]
     energy_delivered_tariff2:
       name: "Import Tariff 2 (1.8.2)"
       id: import_t2
+      filters: [{throttle: 60s}]
     energy_delivered_tariff3:
       name: "Import Tariff 3 (1.8.3)"
       id: import_t3
+      filters: [{throttle: 60s}]
 
-    # Totals as the meter sends them. Reported to be truncated to the last
-    # four digits before the decimal point (see docs/telegram.md).
+    # Totals as the meter sends them. Truncated to the last four digits before
+    # the decimal point (see docs/telegram.md), so do not use 1.8.0.
     energy_delivered_lux:
       name: "Import Total as sent (1.8.0)"
+      filters: [{throttle: 60s}]
     energy_returned_lux:
       name: "Export Total as sent (2.8.0)"
+      filters: [{throttle: 60s}]
 
-    # Instantaneous active power, in kW.
+    # Instantaneous active power, in kW. Averaged over 5 seconds, sent when it
+    # moves by 10 W or more, and repeated every minute.
     power_delivered:
       name: "Import Power (1.7.0)"
       accuracy_decimals: 3
+      filters: [{throttle_average: 5s}, {delta: 0.01}, {heartbeat: 60s}]
     power_returned:
       name: "Export Power (2.7.0)"
       accuracy_decimals: 3
+      filters: [{throttle_average: 5s}, {delta: 0.01}, {heartbeat: 60s}]
 
     # Reactive energy and power. Delete these if you have no use for them.
     total_imported_energy:
       name: "Reactive Energy Import (3.8.0)"
+      filters: [{throttle: 300s}]
     total_exported_energy:
       name: "Reactive Energy Export (4.8.0)"
+      filters: [{throttle: 300s}]
     reactive_power_delivered:
       name: "Reactive Power Import (3.7.0)"
       accuracy_decimals: 3
+      filters: [{throttle_average: 5s}, {delta: 0.02}, {heartbeat: 60s}]
     reactive_power_returned:
       name: "Reactive Power Export (4.7.0)"
       accuracy_decimals: 3
+      filters: [{throttle_average: 5s}, {delta: 0.02}, {heartbeat: 60s}]
 
     current_l1:
       name: "Current L1 (31.7.0)"
+      filters: [{throttle_average: 5s}, {delta: 0.1}, {heartbeat: 60s}]
 
-    # Supply quality counters.
+    # Supply quality counters. They rarely change, so at most every 5 minutes.
     electricity_failures:
       name: "Power Failures (96.7.21)"
+      filters: [{throttle: 300s}]
     electricity_sags_l1:
       name: "Voltage Sags L1 (32.32.0)"
+      filters: [{throttle: 300s}]
     electricity_swells_l1:
       name: "Voltage Swells L1 (32.36.0)"
+      filters: [{throttle: 300s}]
 
     # Three-phase meters are untested. If you have one, try uncommenting:
     # current_l2:
@@ -156,7 +182,7 @@ sensor:
     device_class: energy
     state_class: total_increasing
     accuracy_decimals: 3
-    update_interval: 10s
+    update_interval: 60s
     lambda: |-
       const float t1 = id(import_t1).state;
       const float t2 = id(import_t2).state;
@@ -177,9 +203,13 @@ text_sensor:
     identification:
       name: "Meter Identification"
       entity_category: diagnostic
+    # The meter clock changes every second and Home Assistant would store
+    # every change, so it is disabled by default. Enable it in Home Assistant
+    # if you want it.
     timestamp:
       name: "Meter Clock (1.0.0)"
       entity_category: diagnostic
+      disabled_by_default: true
     electricity_switch_position:
       name: "Supply Switch (96.3.10)"
       entity_category: diagnostic

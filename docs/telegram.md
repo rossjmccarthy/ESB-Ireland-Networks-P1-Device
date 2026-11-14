@@ -4,12 +4,15 @@ ESB Networks has not published a technical specification for the P1 port that
 this project could find. Its public page covers eligibility, enablement and
 safety only.
 
-Everything below comes from one third-party report: an analysis by James Pelow
-of telegrams from a single-phase Sagemcom XS211, published in November 2026 by
-Smart Gateways at
+The register list first came from one third-party report: an analysis by
+James Pelow of telegrams from a single-phase Sagemcom XS211, published in
+November 2026 by Smart Gateways at
 <https://haprofs.com/esb-networks-smart-meter-p1-port-home-assistant/>. Smart
-Gateways sells P1 readers, so treat it as a vendor source. This project has not
-yet confirmed any of it on a meter. If you capture a telegram from your own
+Gateways sells P1 readers, so treat it as a vendor source.
+
+On 14 November 2026 this project confirmed it on its own single-phase ESB
+Networks meter: the header, the serial settings, every register in the table
+below, and the truncated totals. If you capture a telegram from your own
 meter, please open an issue (redact it first, see below).
 
 ## Format
@@ -47,9 +50,11 @@ meter, please open an issue (redact it first, see below).
 - **Three import tariff registers** (`1.8.1`, `1.8.2`, `1.8.3`), where Dutch
   meters have two. The source describes them as day, night and peak. Confirm
   the order against the codes on your own meter's display before relying on it.
-- **Truncated totals.** `1.8.0` and `2.8.0` are reported to carry only the last
-  four digits before the decimal point, for example `1897.040` where the meter
-  display shows `31897.040`. This has been reported to ESB Networks as a bug.
+- **Truncated totals.** `1.8.0` and `2.8.0` carry only the last four digits
+  before the decimal point, for example `1897.040` where the meter display
+  shows `31897.040`. Confirmed on this project's meter, where the three tariff
+  registers add up to a five-digit total and `1.8.0` shows only its last four
+  digits. This has been reported to ESB Networks as a bug.
   - Import: the config rebuilds the total as the sum of the three tariff
     registers, which are sent in full.
   - Export: no export tariff registers are sent, so the total cannot be
@@ -62,9 +67,35 @@ meter, please open an issue (redact it first, see below).
 ## Unknowns
 
 - Three-phase meters.
-- Any ESB Networks meter model other than the Sagemcom XS211.
-- Whether the telegram contains a meter serial number or other identifier
-  beyond the header line.
+- Which ESB Networks meter models send the same telegram. This project's
+  meter model is not yet recorded.
+- The order of the three tariff registers on each plan (day, night, peak).
+
+## Identifiers in the telegram
+
+The header line (`/ESB5\...`, shown in Home Assistant as "Meter
+Identification") carries an identifier after the `ESB5\` prefix. Treat it as
+private, like your MPRN.
+
+## How often values reach Home Assistant
+
+The meter sends a telegram about once a second. Home Assistant stores a new
+database row every time a value changes, so passing every reading on would add
+hundreds of thousands of rows a day. The configuration therefore filters each
+sensor before sending it:
+
+| Sensors | Sent |
+| --- | --- |
+| Active power (1.7.0, 2.7.0) | Averaged over 5 s, sent when it moves by 10 W or more, repeated every 60 s |
+| Reactive power (3.7.0, 4.7.0) | Averaged over 5 s, sent when it moves by 20 var or more, repeated every 60 s |
+| Current (31.7.0) | Averaged over 5 s, sent when it moves by 0.1 A or more, repeated every 60 s |
+| Energy registers (1.8.x, 2.8.0) and the rebuilt import total | At most once a minute |
+| Reactive energy, power failures, sags and swells | At most once every 5 minutes |
+| Meter clock (1.0.0) | Every second, so disabled in Home Assistant by default |
+
+The energy registers are cumulative, so sending them less often loses nothing:
+daily and hourly energy figures stay exact. If you need faster power readings,
+change the `filters` lines in `esphome/esb-p1-reader.yaml`.
 
 ## Sharing a telegram safely
 
