@@ -12,10 +12,12 @@ opening the meter, breaking a seal or touching mains wiring.
 | Serial | 115200 baud, 8 data bits, no parity, 1 stop bit |
 | Data line | Open collector, logically inverted |
 | Power | 5 V from the meter |
-| Update rate | About one telegram per second |
+| Update rate | About one telegram per second (the firmware sends values to Home Assistant less often, see [telegram.md](telegram.md#how-often-values-reach-home-assistant)) |
 
-The connector, serial settings and 5 V supply are as reported for an ESB
-Networks Sagemcom XS211 (see [telegram.md](telegram.md) for the source).
+The connector, serial settings and 5 V supply were first reported for an ESB
+Networks Sagemcom XS211 (see [telegram.md](telegram.md) for the source). The
+serial settings and the inverted data line are confirmed on this project's own
+meter with an ESP32-C6.
 
 ## Pinout
 

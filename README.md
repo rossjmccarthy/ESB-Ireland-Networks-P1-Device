@@ -9,9 +9,9 @@ configuration for it, a web page that flashes a ready-made build from your
 browser, wiring notes, and what is known so far about the Irish telegram
 format.
 
-> **Status: early.** The configuration passes ESPHome's validation but this
-> project has not yet confirmed it on a meter. The register list comes from a
-> single third-party report on one meter model. See
+> **Status: early.** Working on one single-phase ESB Networks meter with an
+> ESP32-C6 since 14 November 2026. The other boards and three-phase meters are
+> untested. What is known about the telegram is in
 > [docs/telegram.md](docs/telegram.md).
 
 This is an independent community project. It is not affiliated with, endorsed
@@ -97,7 +97,7 @@ computer, choose your board and follow the steps.
 
 | Chip | P1 data pin | Status |
 | --- | --- | --- |
-| ESP32-C6 | GPIO6 | Flashed and added to Home Assistant by this project. Not yet confirmed on a meter |
+| ESP32-C6 | GPIO6 | Working on a meter since 14 November 2026 |
 | ESP32 (classic) | GPIO16 | Compiles. Not yet tried on a board |
 | ESP32-S3 | GPIO18 | Compiles. Not yet tried on a board |
 | ESP32-C3 | GPIO6 | Compiles. Not yet tried on a board |
