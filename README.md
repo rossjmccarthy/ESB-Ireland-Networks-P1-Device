@@ -77,9 +77,10 @@ MPRN or your `secrets.yaml` publicly.
 - An ESP32 board, or a ready-made P1 reader that runs ESPHome. Ready-made
   firmware is provided for the ESP32-C6, classic ESP32, ESP32-S3 and ESP32-C3.
 - An RJ12 (6P6C) cable.
-- A resistor of 1 kΩ to 4.7 kΩ, if you are wiring a bare board. The firmware
-  turns on the chip's built-in pull-up, so it may work without one, but the
-  resistor is recommended.
+- Optional: a resistor of 1 kΩ to 4.7 kΩ. The firmware turns on the chip's
+  built-in pull-up on the data line, and that was enough on its own on this
+  project's ESP32-C6: no resistor, no CRC errors. Keep a resistor to hand in
+  case your board or cable shows CRC errors (see Troubleshooting).
 - Home Assistant with the ESPHome integration.
 
 Wiring is in [docs/hardware.md](docs/hardware.md).

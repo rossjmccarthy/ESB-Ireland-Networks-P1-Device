@@ -38,7 +38,7 @@ the right as you look at it.
 | 2 | Data request | RJ12 pin 1 (+5 V) |
 | 3 | Data ground | ESP32 `GND` |
 | 4 | Not connected | Leave unconnected |
-| 5 | Data out | ESP32 RX GPIO, with a pull-up resistor to **3.3 V** |
+| 5 | Data out | ESP32 RX GPIO (pulled up to **3.3 V**, see below) |
 | 6 | Power ground | ESP32 `GND` |
 
 ### Check before you connect the board
@@ -70,14 +70,16 @@ Notes:
   continuously. Whether ESB Networks meters need this has not been confirmed
   here, and tying it high is harmless either way.
 - **Pull-up on the data line (pin 5).** The output is open collector: the
-  meter can only pull the line low, so something must pull it high. Fit a
-  resistor of 1 kΩ to 4.7 kΩ from the data line to the ESP32's **3.3 V** pin.
-  Do not pull it up to 5 V: ESP32 GPIOs are not 5 V tolerant.
+  meter can only pull the line low, so something must pull it high. The
+  firmware turns on the chip's built-in pull-up for this.
 
-  The firmware also turns on the chip's built-in pull-up, so a board with no
-  resistor may work. That pull-up is weak (tens of kilohms) and can be too
-  slow for 115200 baud, which shows up as CRC errors or missing readings. If
-  you see either, fit the resistor. Using both together is fine.
+  On this project's ESP32-C6, wired straight to the meter with no resistor,
+  the built-in pull-up was enough: every telegram arrived with a valid CRC.
+  It is weak (tens of kilohms), so on another board or a longer cable it can
+  be too slow for 115200 baud, which shows up as CRC errors or missing
+  readings. If you see either, fit a resistor of 1 kΩ to 4.7 kΩ from the data
+  line to the ESP32's **3.3 V** pin. Using both together is fine. Never pull
+  the line up to 5 V: ESP32 GPIOs are not 5 V tolerant.
 - **Inversion.** The signal is inverted compared with normal UART. The config
   handles this in software with `inverted: true`, so no transistor is needed.
 
@@ -109,7 +111,7 @@ leave it out.
 | 1 (+5 V) | ESP32 `5V` **and** RJ12 pin 2 | RJ12 pin 2 **only** |
 | 2 (Data request) | RJ12 pin 1 | RJ12 pin 1 |
 | 3 (Data ground) | ESP32 `GND` | ESP32 `GND` |
-| 5 (Data out) | RX GPIO, pull-up to 3.3 V | RX GPIO, pull-up to 3.3 V |
+| 5 (Data out) | RX GPIO (built-in pull-up; resistor to 3.3 V only if needed) | RX GPIO (built-in pull-up; resistor to 3.3 V only if needed) |
 | 6 (Power ground) | ESP32 `GND` | ESP32 `GND` |
 
 Pins 1 and 2 stay joined to each other in both cases. That link is what holds
