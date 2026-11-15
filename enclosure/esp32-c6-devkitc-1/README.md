@@ -1,6 +1,18 @@
 # Case for the ESP32-C6-DevKitC-1
 
-A two-part case for the reference board, sized for an outdoor meter cabinet.
+A two-part case for an ESP32-C6-DevKitC-1 used as the P1 reader, sized for an
+outdoor meter cabinet.
+
+> **This case fits one board only: Espressif's ESP32-C6-DevKitC-1** (with the
+> ESP32-C6-WROOM-1 module, 25.4 × 51.8 mm). It will not fit the other boards
+> the web flasher supports (classic ESP32, ESP32-S3 or ESP32-C3 boards), nor
+> other ESP32-C6 boards such as the DevKitM-1 or Super Mini, because their
+> size, USB port positions and antennas are different. If you have another
+> board, `case.py` is a starting point, but expect to change the board
+> dimensions, supports and openings yourself.
+
+**Status:** printed in PETG and in use on this project's meter since
+15 November 2026.
 
 ![The base with the board fitted, the assembled case, and the lid as printed](preview.png)
 
@@ -80,7 +92,12 @@ python case.py
 Board dimensions come from Espressif's drawing
 `esp32-c6-devkitc-1-dimensions_v1.2` (25.4 × 51.8 mm board, antenna
 overhanging the top edge by 6.35 mm). The case was checked against a 3D model
-of the board, header pins, Dupont plugs and a USB-C plug for collisions, and
-the base has been printed and test-fitted. The clip lid replaced an earlier
-lid whose snap bumps did not hold; it works with a base printed before the
-change.
+of the board, header pins, Dupont plugs and a USB-C plug for collisions, then
+printed and fitted. The clip lid replaced an earlier lid whose snap bumps did
+not hold; it works with a base printed before the change.
+
+## Licence
+
+MIT, like the rest of the repository. Provided as is: check the fit and the
+conditions in the [disclaimer](../../DISCLAIMER.md) before you mount anything
+in a meter cabinet.

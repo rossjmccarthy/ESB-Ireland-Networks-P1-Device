@@ -176,8 +176,17 @@ GitHub, so it only works while the repository is public.
 | `esphome/esb-p1-reader.secure.example.yaml` | Example of your own configuration, with Wi-Fi details and encryption |
 | `esphome/secrets.yaml.example` | Template for your `secrets.yaml` |
 | `web/index.html` | The web flasher page |
-| `enclosure/esp32-c6-devkitc-1/` | Printable case for the ESP32-C6-DevKitC-1 (STL files and the script that makes them) |
+| `enclosure/esp32-c6-devkitc-1/` | Printable case for the ESP32-C6-DevKitC-1 only (STL files and the script that makes them) |
 | `.github/workflows/firmware.yml` | Builds the firmware for every board and publishes the flasher page on every change to `main` |
+
+## Printable case
+
+If you built the reader on an **ESP32-C6-DevKitC-1**, there is a printable
+two-part case with a clip-on lid in
+[`enclosure/esp32-c6-devkitc-1/`](enclosure/esp32-c6-devkitc-1/). It is made
+for that one board and will not fit the other boards the web flasher supports.
+
+![The case, with the board fitted](enclosure/esp32-c6-devkitc-1/preview.png)
 
 ## Home Assistant Energy dashboard
 
