@@ -9,8 +9,9 @@ configuration for it, a web page that flashes a ready-made build from your
 browser, wiring notes, and what is known so far about the Irish telegram
 format.
 
-> **Status: early.** Working on one single-phase ESB Networks meter with an
-> ESP32-C6 since 14 November 2026. The other boards and three-phase meters are
+> **Status: early.** Running since 14 November 2026 on one ESB Networks meter
+> (a single-phase Sagemcom Siconia) with an ESP32-C6-DevKitC-1, fitted in the
+> printed case. The other boards, other meter models and three-phase meters are
 > untested. What is known about the telegram is in
 > [docs/telegram.md](docs/telegram.md).
 

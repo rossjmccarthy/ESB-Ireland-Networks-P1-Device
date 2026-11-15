@@ -10,9 +10,12 @@ November 2026 by Smart Gateways at
 <https://haprofs.com/esb-networks-smart-meter-p1-port-home-assistant/>. Smart
 Gateways sells P1 readers, so treat it as a vendor source.
 
-On 14 November 2026 this project confirmed it on its own single-phase ESB
-Networks meter: the header, the serial settings, every register in the table
-below, and the truncated totals. If you capture a telegram from your own
+On 14 November 2026 this project confirmed it on its own meter, a
+single-phase Sagemcom Siconia: the header, the serial settings, every register
+in the table below, and the truncated totals. The front label of that meter
+reads Sagemcom Siconia, 230 V, 0.25–5 (100) A, IP54, with P1 and wM-Bus; it
+gives the meter family rather than a model code, so it may be the same meter
+as the XS211 in the vendor report. If you capture a telegram from your own
 meter, please open an issue (redact it first, see below).
 
 ## Format
@@ -67,8 +70,9 @@ meter, please open an issue (redact it first, see below).
 ## Unknowns
 
 - Three-phase meters.
-- Which ESB Networks meter models send the same telegram. This project's
-  meter model is not yet recorded.
+- Which other ESB Networks meter models send the same telegram. Confirmed so
+  far: a single-phase Sagemcom Siconia (this project) and a single-phase
+  Sagemcom XS211 (the vendor report).
 - The order of the three tariff registers on each plan (day, night, peak).
 
 ## Identifiers in the telegram

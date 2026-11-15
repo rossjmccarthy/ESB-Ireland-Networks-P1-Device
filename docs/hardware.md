@@ -22,9 +22,10 @@ meter with an ESP32-C6.
 ## Pinout
 
 ESB Networks has not published a pinout that this project could find. The table
-below is the pinout from the Dutch DSMR 5.0.2 P1 Companion Standard. Readers
-built to that pinout are reported to work on ESB Networks meters, including
-taking their power from the port, so it is very likely correct.
+below is the pinout from the Dutch DSMR 5.0.2 P1 Companion Standard. It is
+confirmed on this project's meter, a single-phase Sagemcom Siconia, and other
+readers built to it are reported to work on ESB Networks meters. Other meter
+models have not been checked, so still test with a multimeter first.
 
 ![RJ12 pin numbering. On the plug, held with the gold contacts facing you, the tip pointing up and the latch tab on the back, pin 1 is the leftmost contact. On the meter socket, seen from the front with the latch notch at the bottom, pin 1 is the leftmost contact.](images/rj12-pinout.svg)
 
@@ -127,7 +128,7 @@ P1 data line on a fixed pin:
 
 | Chip | Built for | P1 data pin | Status |
 | --- | --- | --- | --- |
-| ESP32-C6 | ESP32-C6-DevKitC-1 (ESP32-C6-WROOM-1) | **GPIO6** | Flashed and added to Home Assistant by this project. Not yet confirmed on a meter |
+| ESP32-C6 | ESP32-C6-DevKitC-1 (ESP32-C6-WROOM-1) | **GPIO6** | Running on this project's meter since 14 November 2026 |
 | ESP32 (classic) | ESP32-DevKitC, NodeMCU-32S (ESP32-WROOM-32) | **GPIO16** | Compiles. Not yet tried on a board |
 | ESP32-S3 | ESP32-S3-DevKitC-1 | **GPIO18** | Compiles. Not yet tried on a board |
 | ESP32-C3 | ESP32-C3-DevKitM-1, C3 Super Mini | **GPIO6** | Compiles. Not yet tried on a board |
