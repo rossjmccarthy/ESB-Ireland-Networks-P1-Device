@@ -67,12 +67,19 @@ jobs:
             > out/manifest.json
           ls -l out
 
-      - name: Create GitHub release
+      - name: Create the release, or add the firmware to it
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          gh release create "${TAG}" out/* \
-            --title "${TAG}" \
-            --generate-notes \
-            --verify-tag
+          set -euo pipefail
+          # A release made on GitHub's Releases page already exists by the time
+          # this runs (creating it pushed the tag); just attach the firmware.
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" out/* --clobber
+          else
+            gh release create "${TAG}" out/* \
+              --title "${TAG}" \
+              --generate-notes \
+              --verify-tag
+          fi

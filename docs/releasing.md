@@ -12,7 +12,9 @@ for the first release that month. For example `v2026.11.0`, then
 ## Steps
 
 1. Make sure the latest **Check firmware builds** run on `main` passed.
-2. Tag the commit and push the tag:
+2. Either draft a new release on the repository's Releases page (choose
+   "Create new tag" with the new version, target `main`, and publish), or tag
+   the commit and push the tag:
 
    ```bash
    git tag -a v2026.11.1 -m "v2026.11.1"
@@ -23,9 +25,10 @@ for the first release that month. For example `v2026.11.0`, then
    ```
 
 3. The **Release** workflow builds every board with the version set to the
-   tag and adopted devices pinned to it, then creates a GitHub Release with the
-   firmware and manifests attached and notes generated from the merged pull
-   requests. Edit the notes if anything needs explaining, such as a change
+   tag and adopted devices pinned to it, then attaches the firmware and
+   manifests to the release (creating the release, with notes generated from
+   the merged pull requests, if you pushed a bare tag). It takes about ten
+   minutes. Edit the notes if anything needs explaining, such as a change
    users must make by hand.
 4. When the Release workflow succeeds, **Publish web flasher** puts that
    release on the flasher page. Check the page shows the new version.
