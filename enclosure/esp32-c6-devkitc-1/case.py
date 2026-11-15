@@ -17,7 +17,7 @@ from pathlib import Path
 
 import numpy as np
 import trimesh
-from manifold3d import CrossSection, JoinType, Manifold
+from manifold3d import CrossSection, Error, JoinType, Manifold, Mesh
 
 # --- Board (Espressif drawing v1.2) ---------------------------------------
 PCB_W = 25.4          # board width
@@ -53,6 +53,16 @@ LIP_T = 1.2
 LID_CLEAR = 0.2       # gap between lid lip and walls
 SNAP = 0.45           # how far the snap bumps stand proud of the lip
 POST_GAP = 0.15       # gap left between the lid's hold-down posts and the board
+
+# Clips: one springy arm on each long side of the lid runs down the outside of
+# the base and hooks under the back edge. They need nothing on the base, so a
+# base printed before the clips were added still works.
+CLIP_W = 12.0         # width of each arm
+CLIP_T = 2.0          # arm thickness
+CLIP_GAP = 0.2        # gap between arm and the base's side wall
+HOOK = 1.0            # how far the hook reaches under the back edge
+HOOK_T = 1.5          # hook thickness
+HOOK_GAP = 0.1        # play between hook and the back of the case
 
 EAR_LEN = 9.0         # mounting ears at each end, for a strap or cable ties
 EAR_W = 22.0
@@ -160,6 +170,61 @@ def lid(cable_floor):
     part += box(BX + 11.0, BY + 0.8, PCB_TOP + POST_GAP, BX + 14.3, BY + 2.6, BASE_H + 0.01)
     part += box(BX + 10.0, BY + PCB_L + 0.4, PCB_TOP + MODULE_PCB_T + POST_GAP,
                 BX + 15.4, BY + PCB_L + 2.0, BASE_H + 0.01)
+    part += clips()
+    return part
+
+
+def xz_prism(points, y_centre, width):
+    """Extrude a convex polygon drawn in the x-z plane along y, centred on y_centre.
+
+    Built directly from vertices (rather than extruded and rotated) so every
+    coordinate is exact and the faces line up with the rest of the lid.
+    """
+    pts = list(points)
+    area = sum(x0 * z1 - x1 * z0 for (x0, z0), (x1, z1) in zip(pts, pts[1:] + pts[:1]))
+    if area < 0:
+        pts.reverse()
+    n = len(pts)
+    y0, y1 = y_centre - width / 2, y_centre + width / 2
+    verts = [(x, y0, z) for x, z in pts] + [(x, y1, z) for x, z in pts]
+    tris = []
+    for k in range(1, n - 1):
+        tris.append((0, k, k + 1))               # cap at y0, facing -y
+        tris.append((n, n + k + 1, n + k))       # cap at y1, facing +y
+    for k in range(n):
+        a, b = k, (k + 1) % n
+        tris.append((a, n + a, n + b))
+        tris.append((a, n + b, b))
+    mesh = Mesh(vert_properties=np.array(verts, dtype=np.float32), tri_verts=np.array(tris, dtype=np.uint32))
+    m = Manifold(mesh)
+    if m.volume() < 0 or m.status() != Error.NoError:
+        raise ValueError("bad prism")
+    return m
+
+
+def clips():
+    """Two clip arms, attached to the lid plate, in assembled coordinates."""
+    part = Manifold()
+    yc = OUT_L / 2
+    top = BASE_H + LID_T
+    z_hook = -HOOK_GAP
+    z_end = z_hook - HOOK_T
+    for side in (-1, 1):
+        def x(v):
+            # v is measured outward from the side wall; flip it for the right side.
+            return -v if side < 0 else OUT_W + v
+        a_in, a_out = CLIP_GAP, CLIP_GAP + CLIP_T
+        # Arm, from the lid plate down past the back of the case.
+        arm = [(x(a_in), z_end), (x(a_out), z_end), (x(a_out), top), (x(a_in), top)]
+        # Bridge joining the arm to the lid plate.
+        bridge = [(x(a_out), BASE_H), (x(-1.5), BASE_H), (x(-1.5), top), (x(a_out), top)]
+        # Hook under the back edge, with a sloped lead-in so it rides over the
+        # wall as the lid is pressed on.
+        hook = [(x(a_in), z_hook), (x(-HOOK), z_hook), (x(-HOOK), z_hook - 0.3), (x(a_in), z_end)]
+        # Pull tab at the tip, to flick the arm outward when taking the lid off.
+        tab = [(x(a_out), z_end), (x(a_out + 2.0), z_end), (x(a_out + 2.0), z_end + 1.0), (x(a_out), z_end + 4.0)]
+        for poly in (arm, bridge, hook, tab):
+            part += xz_prism(poly, yc, CLIP_W)
     return part
 
 
@@ -174,7 +239,9 @@ def main():
     b, cable_floor = base()
     lid_part = lid(cable_floor)
     # Print the lid plate-down: flip it over and sit it on the bed.
-    lid_print = lid_part.rotate([180, 0, 0]).translate([0, OUT_L, BASE_H + LID_T])
+    lid_print = lid_part.rotate([180, 0, 0])
+    lo = lid_print.bounding_box()
+    lid_print = lid_print.translate([0, -lo[1], -lo[2]])
     for name, m in (("base", b), ("lid", lid_print)):
         t = to_trimesh(m)
         t.export(out / f"{name}.stl")
