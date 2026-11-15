@@ -176,6 +176,7 @@ GitHub, so it only works while the repository is public.
 | `esphome/esb-p1-reader.secure.example.yaml` | Example of your own configuration, with Wi-Fi details and encryption |
 | `esphome/secrets.yaml.example` | Template for your `secrets.yaml` |
 | `web/index.html` | The web flasher page |
+| `enclosure/esp32-c6-devkitc-1/` | Printable case for the ESP32-C6-DevKitC-1 (STL files and the script that makes them) |
 | `.github/workflows/firmware.yml` | Builds the firmware for every board and publishes the flasher page on every change to `main` |
 
 ## Home Assistant Energy dashboard

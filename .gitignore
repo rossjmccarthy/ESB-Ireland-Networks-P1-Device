@@ -7,3 +7,6 @@ secrets.yaml
 # Raw telegram captures can identify a meter. Redact before sharing.
 captures/
 *.telegram
+
+# Python
+__pycache__/

@@ -173,6 +173,10 @@ to the board list in `web/index.html`.
 
 ## Fitting it
 
+A printable case for the ESP32-C6-DevKitC-1 is in
+[`enclosure/esp32-c6-devkitc-1/`](../enclosure/esp32-c6-devkitc-1/), with
+printing and mounting notes.
+
 - Keep the cable short. At 115200 baud the DSMR standard limits the cable to
   a couple of metres. Put the board at the meter and let Wi-Fi cover the
   distance.
