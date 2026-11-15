@@ -51,8 +51,18 @@ meter, please open an issue (redact it first, see below).
 ## Differences from Dutch and Belgian meters
 
 - **Three import tariff registers** (`1.8.1`, `1.8.2`, `1.8.3`), where Dutch
-  meters have two. The source describes them as day, night and peak. Confirm
-  the order against the codes on your own meter's display before relying on it.
+  meters have two. On this project's meter, hourly readings over
+  14 and 15 November 2026 showed:
+
+  | Register | Rate | Counts during (Irish time) |
+  | --- | --- | --- |
+  | `1.8.1` | Night | 23:00 to 08:00 |
+  | `1.8.2` | Day | 08:00 to 17:00 and 19:00 to 23:00 |
+  | `1.8.3` | Peak | 17:00 to 19:00 |
+
+  These match the standard smart-meter time bands. They were checked on one
+  meter in winter time only, so check your own: watch which register moves at
+  a few different times of day.
 - **Truncated totals.** `1.8.0` and `2.8.0` carry only the last four digits
   before the decimal point, for example `1897.040` where the meter display
   shows `31897.040`. Confirmed on this project's meter, where the three tariff
@@ -73,7 +83,8 @@ meter, please open an issue (redact it first, see below).
 - Which other ESB Networks meter models send the same telegram. Confirmed so
   far: a single-phase Sagemcom Siconia (this project) and a single-phase
   Sagemcom XS211 (the vendor report).
-- The order of the three tariff registers on each plan (day, night, peak).
+- Whether the tariff registers follow the same time bands on every meter and
+  plan, and whether the bands shift with summer time.
 
 ## Identifiers in the telegram
 
