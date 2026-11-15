@@ -99,8 +99,9 @@ dsmr:
 sensor:
   - platform: dsmr
     # Imported energy per tariff register. These are sent in full and are the
-    # ones to trust. Which register is day, night or peak depends on your
-    # meter and plan: compare against the codes scrolling on the meter display.
+    # ones to trust. On the project's meter 1.8.1 is night (23:00-08:00),
+    # 1.8.2 is day and 1.8.3 is peak (17:00-19:00); see docs/telegram.md.
+    # The names stay generic so existing devices keep their entity ids.
     # Energy registers are sent at most once a minute.
     energy_delivered_tariff1:
       name: "Import Tariff 1 (1.8.1)"

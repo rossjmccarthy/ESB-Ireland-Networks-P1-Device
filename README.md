@@ -194,9 +194,26 @@ for that one board and will not fit the other boards the web flasher supports.
 - **Grid consumption:** `Import Total (sum of tariffs)`
 - **Return to grid:** `Export Total as sent (2.8.0)`
 
-The meter's own import total (`1.8.0`) is reported to be truncated, which is
-why the configuration provides a rebuilt one. Details are in
+The meter's own import total (`1.8.0`) is truncated, which is why the
+configuration provides a rebuilt one. Details are in
 [docs/telegram.md](docs/telegram.md).
+
+On a smart (time-of-use) plan, the three tariff registers already split your
+import for you, so you don't need utility-meter helpers to track it. On this
+project's meter:
+
+| Sensor | Rate | Counts during (Irish time) |
+| --- | --- | --- |
+| `Import Tariff 1 (1.8.1)` | Night | 23:00 to 08:00 |
+| `Import Tariff 2 (1.8.2)` | Day | 08:00 to 17:00 and 19:00 to 23:00 |
+| `Import Tariff 3 (1.8.3)` | Peak | 17:00 to 19:00 |
+
+To see cost per rate, add each register as a separate grid consumption source
+in the Energy dashboard, each with its own price, instead of the import total.
+
+If you also run a CT-clamp monitor such as an Emporia Vue, expect it to read
+slightly low against the meter: on this project's installation the Vue tracked
+the P1 import within 0.5%, minus a steady 21 W of load its clamps don't see.
 
 ## Troubleshooting
 
