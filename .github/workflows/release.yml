@@ -1,0 +1,78 @@
+name: Release
+
+# Push a tag such as v2026.11.0 to make a release. This builds the firmware
+# for every board, pins adopted devices to that tag, and attaches the
+# firmware and web flasher manifests to a GitHub Release. pages.yml then puts
+# that release on the web flasher.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+    with:
+      version: ${{ github.ref_name }}
+      import_ref: ${{ github.ref_name }}
+
+  release:
+    name: Create release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Download firmware
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          pattern: firmware-*
+          path: builds
+
+      - name: Assemble firmware and manifests
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          wrap='{
+            name: "ESB P1 Reader",
+            version: $version,
+            home_assistant_domain: "esphome",
+            new_install_prompt_erase: true,
+            builds: .
+          }'
+          # One manifest per board, so the flasher installs exactly the build
+          # the visitor picked.
+          for dir in builds/firmware-*; do
+            board="${dir#builds/firmware-}"
+            cp "${dir}"/*.bin out/
+            jq --arg version "${VERSION}" -s "${wrap}" "${dir}/manifest.json" \
+              > "out/${board}.manifest.json"
+          done
+          # A combined manifest that picks the build by detected chip.
+          jq --arg version "${VERSION}" -s "${wrap}" builds/firmware-*/manifest.json \
+            > out/manifest.json
+          ls -l out
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "${TAG}" out/* \
+            --title "${TAG}" \
+            --generate-notes \
+            --verify-tag

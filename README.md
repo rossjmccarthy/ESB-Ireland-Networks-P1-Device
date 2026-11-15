@@ -167,6 +167,25 @@ wifi:
 Adopting needs the dashboard to fetch this repository's configuration from
 GitHub, so it only works while the repository is public.
 
+## Versions and updates
+
+The project is released in numbered versions, for example `v2026.11.0`. Each
+one is listed on the [Releases page](https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device/releases) with what changed.
+
+- **The web flasher** always installs the latest release.
+- **An adopted device stays on the release it was flashed with.** Its
+  configuration loads the core file from GitHub at that release's tag, so
+  later changes to this repository never reach it by surprise.
+- **To move a device to a newer release,** open its configuration in the
+  ESPHome dashboard, change the `ref:` (or the `@v...` at the end of the
+  package line) to the new tag, and install it wirelessly. Read the release
+  notes first.
+- **`main` is work in progress.** Don't point a device at `main` unless you
+  want untested changes.
+
+Devices adopted before releases started load from `main`. Change their `ref:`
+to the latest tag to pin them.
+
 ## Files
 
 | File | Purpose |
@@ -178,7 +197,8 @@ GitHub, so it only works while the repository is public.
 | `esphome/secrets.yaml.example` | Template for your `secrets.yaml` |
 | `web/index.html` | The web flasher page |
 | `enclosure/esp32-c6-devkitc-1/` | Printable case for the ESP32-C6-DevKitC-1 only (STL files and the script that makes them) |
-| `.github/workflows/firmware.yml` | Builds the firmware for every board and publishes the flasher page on every change to `main` |
+| `.github/workflows/` | `ci.yml` checks every board still builds; `release.yml` builds and publishes a release when a version tag is pushed; `pages.yml` puts the latest release on the web flasher. See [docs/releasing.md](docs/releasing.md) |
+| `.github/ISSUE_TEMPLATE/` | Forms for meter and board reports |
 
 ## Printable case
 
@@ -226,9 +246,17 @@ the P1 import within 0.5%, minus a steady 21 W of load its clamps don't see.
 
 ## Contributing
 
-Reports from other meter models and from three-phase meters are the most useful
-thing you can add. Please redact telegrams before posting them. See "Sharing a
-telegram safely" in [docs/telegram.md](docs/telegram.md).
+Reports from other meter models, three-phase meters and the untested boards
+are the most useful thing you can add. Use the forms on the
+[new issue page](https://github.com/rossjmccarthy/ESB-Ireland-Networks-P1-Device/issues/new/choose):
+
+- **Meter report:** your meter model, whether it worked, and which tariff
+  register counts when.
+- **Board report:** how one of the ready-made builds worked on your board.
+
+Never post your MPRN or your meter's serial number, and redact telegrams
+before posting them. See "Sharing a telegram safely" in
+[docs/telegram.md](docs/telegram.md).
 
 ## Credits
 

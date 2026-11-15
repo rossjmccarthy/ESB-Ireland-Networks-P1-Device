@@ -1,0 +1,77 @@
+name: Meter report
+description: Tell us whether the P1 reader works on your ESB Networks meter.
+title: "Meter report: "
+labels: ["meter report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Reports from meter models and setups we have not
+        tested yet are the most useful thing you can share.
+
+        **Privacy first.** Never post your MPRN, your meter's serial number,
+        or a photo that shows the meter's labels. A raw telegram includes an
+        identifier on its first line (after `/ESB5\`): replace it with `X`
+        characters before you paste it.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before you post
+      options:
+        - label: I have removed my MPRN, meter serial number and any identifier from the telegram and photos.
+          required: true
+  - type: input
+    id: meter
+    attributes:
+      label: Meter make and model
+      description: From the front label, for example "Sagemcom Siconia". Leave out serial numbers.
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Supply
+      options:
+        - Single phase
+        - Three phase
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Did it work?
+      options:
+        - "Yes: readings arrive in Home Assistant"
+        - "Partly: some sensors are missing or wrong"
+        - "No: nothing arrives"
+    validations:
+      required: true
+  - type: input
+    id: board
+    attributes:
+      label: Board and how you flashed it
+      description: For example "ESP32-C6-DevKitC-1, web flasher v2026.11.0".
+    validations:
+      required: true
+  - type: input
+    id: power
+    attributes:
+      label: How the board is powered
+      description: From the meter's P1 port, or from USB? Any reboots or brown-outs?
+  - type: textarea
+    id: tariffs
+    attributes:
+      label: Tariff registers
+      description: If you can, say which register (1.8.1, 1.8.2, 1.8.3) counts at which times of day.
+  - type: textarea
+    id: telegram
+    attributes:
+      label: One redacted telegram (optional)
+      description: A single telegram from the debug log, with the identifier replaced by X characters. Not a log.
+      render: text
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: CRC errors, missing sensors, resistor fitted or not, cable length, and so on.

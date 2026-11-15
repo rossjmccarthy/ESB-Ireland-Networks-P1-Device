@@ -1,0 +1,52 @@
+name: Board report
+description: Tell us how one of the ready-made builds worked on your ESP32 board.
+title: "Board report: "
+labels: ["board report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Only the ESP32-C6 build has been tested on a meter so far. If you tried
+        the classic ESP32, ESP32-S3 or ESP32-C3 build, this tells us whether it
+        can be marked as working. Please don't include Wi-Fi details, keys or
+        your MPRN.
+  - type: dropdown
+    id: build
+    attributes:
+      label: Which build
+      options:
+        - ESP32-C6 (GPIO6)
+        - ESP32 classic (GPIO16)
+        - ESP32-S3 (GPIO18)
+        - ESP32-C3 (GPIO6)
+        - Built it myself
+    validations:
+      required: true
+  - type: input
+    id: board
+    attributes:
+      label: Exact board
+      description: For example "ESP32-S3-DevKitC-1" or "C3 Super Mini".
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Release
+      description: The version shown in the web flasher or in Home Assistant, for example v2026.11.0.
+  - type: checkboxes
+    id: steps
+    attributes:
+      label: What worked
+      options:
+        - label: Flashed from the web flasher
+        - label: Wi-Fi set up from the flasher over USB
+        - label: Wi-Fi set up from the setup hotspot
+        - label: Discovered and adopted in Home Assistant
+        - label: Readings arrive from the meter
+        - label: Runs on power from the meter (no USB)
+  - type: textarea
+    id: notes
+    attributes:
+      label: Problems or notes
+      description: Error messages, CRC errors, reboots, pins you had to change.

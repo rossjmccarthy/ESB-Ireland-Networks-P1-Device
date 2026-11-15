@@ -1,0 +1,73 @@
+name: Build firmware
+
+# Reusable: builds the ready-made firmware for every board in esphome/boards/
+# and uploads one artifact per board. Called by ci.yml and release.yml.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: Firmware version shown in Home Assistant
+        type: string
+        required: true
+      import_ref:
+        description: Git ref that adopted devices load their configuration from
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  boards:
+    name: List boards
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      boards: ${{ steps.boards.outputs.boards }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: List board files
+        id: boards
+        run: |
+          set -euo pipefail
+          boards=$(ls esphome/boards/*.yaml | xargs -n1 basename | sed 's/\.yaml$//' | jq -R . | jq -sc .)
+          echo "boards=${boards}" >> "$GITHUB_OUTPUT"
+          echo "Boards: ${boards}"
+
+  build:
+    name: Build ${{ matrix.board }}
+    needs: boards
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        board: ${{ fromJson(needs.boards.outputs.boards) }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Build firmware
+        id: esphome
+        uses: esphome/build-action@ae5408cdbc4f70692bf8e345c4982bca05a93667  # v8.1.0
+        with:
+          yaml-file: esphome/esb-p1-reader.factory.yaml
+          version: 2026.10.2
+          substitutions: |
+            board_id=${{ matrix.board }}
+            project_version=${{ inputs.version }}
+            import_ref=${{ inputs.import_ref }}
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: firmware-${{ matrix.board }}
+          path: |
+            ${{ steps.esphome.outputs.name }}/manifest.json
+            ${{ steps.esphome.outputs.name }}/*.bin
+          if-no-files-found: error
+          retention-days: 30

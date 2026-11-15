@@ -1,0 +1,34 @@
+name: Check firmware builds
+
+# Builds every board on pull requests and on changes to main, so a broken
+# configuration is caught before a release. Publishes nothing.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "esphome/**"
+      - ".github/workflows/build.yml"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "esphome/**"
+      - ".github/workflows/build.yml"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+    with:
+      version: dev-${{ github.run_number }}
+      import_ref: main

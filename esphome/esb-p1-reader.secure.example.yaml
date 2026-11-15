@@ -17,8 +17,9 @@ substitutions:
 
 packages:
   core: !include esb-p1-reader.yaml
-  # Or, to use the published copy instead of a local file:
-  # core: github://rossjmccarthy/ESB-Ireland-Networks-P1-Device/esphome/esb-p1-reader.yaml@main
+  # Or, to use a published release instead of a local file (pick the latest
+  # tag from the repository's Releases page):
+  # core: github://rossjmccarthy/ESB-Ireland-Networks-P1-Device/esphome/esb-p1-reader.yaml@v2026.11.0
 
 esphome:
   name: ${device_name}
